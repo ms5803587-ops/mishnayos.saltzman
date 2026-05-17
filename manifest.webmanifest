@@ -1,0 +1,25 @@
+{
+  "name": "לוח שנה למשניות משפחת זלצמן",
+  "short_name": "לוח משניות",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#070705",
+  "theme_color": "#080705",
+  "dir": "rtl",
+  "lang": "he",
+  "icons": [
+    {
+      "src": "site-icon-round.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "site-icon-round.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
