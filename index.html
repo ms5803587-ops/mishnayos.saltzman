@@ -1986,8 +1986,8 @@ body.light #actionsPage .action-tile-clean{
         <p class="home-learning" id="homeLearning">היום לומדים:</p>
         <div class="home-meta" id="homeMeta"></div><div class="loading-note" id="loadStatus">טוען נתונים מהגיליון...</div>
         <div class="actions-row">
-          <button id="markTodayBtn" type="button" class="btn">סמן / בטל כנלמד</button>
-          <button class="btn" onclick="showPage('calendarPage')">כל הלוח</button>
+          <button id="markTodayBtn" type="button" class="btn" onclick="markToday()">סמן / בטל כנלמד</button>
+          <button type="button" class="btn" onclick="showPage('calendarPage')">כל הלוח</button>
         </div>
       </div>
       <aside class="home-side">
@@ -2208,6 +2208,13 @@ let DATA = [];
 const FALLBACK_DATA = [];
 let ADMIN_MESSAGES = [];
 const STORAGE_PREFIX = "zaltsman_mishnayos_";
+const SHEET_FETCH_CONFIG = Object.freeze({
+  retries: 2,
+  timeoutMs: 10000,
+  baseDelayMs: 650,
+  requestCache: "no-store",
+  redirect: "follow"
+});
 const todayIsoReal = new Date().toISOString().slice(0,10);
 let currentToday = null;
 
@@ -2354,14 +2361,6 @@ function bindHomeButtons(){
       openToday();
     });
   }
-  const markBtn = $("markTodayBtn");
-  if(markBtn && !markBtn.dataset.bound){
-    markBtn.dataset.bound = "1";
-    markBtn.addEventListener("click", function(e){
-      e.preventDefault();
-      markToday();
-    });
-  }
 }
 
 function useFallbackData(){
@@ -2431,19 +2430,62 @@ function loadGvizJsonp(){
   });
 }
 
-async function fetchFirstWorkingCsv(urls){
+function sleep(ms){
+  return new Promise(resolve=>setTimeout(resolve, ms));
+}
+
+async function fetchWithTimeout(url, options={}, timeoutMs=10000){
+  const controller = new AbortController();
+  const timer = setTimeout(()=>controller.abort(), timeoutMs);
+  try{
+    const res = await fetch(url, { ...options, signal: controller.signal });
+    return res;
+  }catch(err){
+    if(err && err.name === "AbortError"){
+      throw new Error("פג הזמן לטעינה (" + Math.round(timeoutMs/1000) + " שניות)");
+    }
+    throw err;
+  }finally{
+    clearTimeout(timer);
+  }
+}
+
+async function fetchCsvWithRetries(url, opts={}){
+  const retries = opts.retries ?? SHEET_FETCH_CONFIG.retries;
+  const timeoutMs = opts.timeoutMs ?? SHEET_FETCH_CONFIG.timeoutMs;
+  const baseDelayMs = opts.baseDelayMs ?? SHEET_FETCH_CONFIG.baseDelayMs;
+  const requestCache = opts.requestCache ?? SHEET_FETCH_CONFIG.requestCache;
+  const redirect = opts.redirect ?? SHEET_FETCH_CONFIG.redirect;
+
+  let lastError = null;
+  for(let attempt=1; attempt<=retries+1; attempt++){
+    try{
+      const res = await fetchWithTimeout(url, { cache: requestCache, redirect }, timeoutMs);
+      if(!res.ok) throw new Error("HTTP " + res.status);
+      const text = await res.text();
+      if(!text || !text.trim()) throw new Error("CSV ריק");
+      if(text.trim().startsWith("<")) throw new Error("התקבל HTML במקום CSV");
+      return { text, attempts: attempt };
+    }catch(err){
+      lastError = err;
+      if(attempt <= retries){
+        await sleep(baseDelayMs * attempt);
+      }
+    }
+  }
+
+  throw new Error("טעינת קובץ הלוח נכשלה אחרי " + (retries+1) + " ניסיונות.");
+}
+
+async function fetchFirstWorkingCsv(urls, opts={}){
   let lastError = null;
   for(const url of urls){
     try{
-      const res = await fetch(url, { cache: "reload", redirect: "follow" });
-      if(!res.ok) throw new Error("HTTP " + res.status + " בכתובת " + url);
-      const text = await res.text();
-      if(!text || !text.trim()) throw new Error("CSV ריק בכתובת " + url);
-      if(text.trim().startsWith("<")) throw new Error("התקבל HTML במקום CSV בכתובת " + url);
-      return { text, url };
+      const result = await fetchCsvWithRetries(url, opts);
+      return { text: result.text, url, attempts: result.attempts };
     }catch(err){
       lastError = err;
-      console.error("CSV load attempt failed:", url, err);
+      console.error("CSV load attempts failed:", url, err);
     }
   }
   throw lastError || new Error("לא נמצאה כתובת CSV תקינה");
@@ -2466,12 +2508,15 @@ async function loadSheetData(){
     let loadedFrom = "";
 
     try{
-      const result = await fetchFirstWorkingCsv(SHEET_CSV_URLS);
+      const t0 = performance.now();
+      const result = await fetchFirstWorkingCsv(SHEET_CSV_URLS, SHEET_FETCH_CONFIG);
       rows = parseCSV(result.text);
       loadedFrom = "CSV";
+      const durationMs = Math.round(performance.now() - t0);
+      console.info("Sheet CSV load success", {url: result.url, attempts: result.attempts, durationMs});
     }catch(csvErr){
       console.warn("CSV fetch failed, trying GViz JSONP:", csvErr);
-      if(status) status.textContent = "CSV נחסם, מנסה טעינה חלופית מהשיטס...";
+      if(status) status.textContent = "טעינת CSV נכשלה, מנסה טעינה חלופית מהשיטס (JSONP)...";
       rows = await loadGvizJsonp();
       loadedFrom = "JSONP";
     }
@@ -2522,7 +2567,7 @@ async function loadSheetData(){
     currentToday = null;
     try{ refresh(); }catch(e){ console.error("Refresh after failure error:", e); }
     if(status){
-      status.textContent = "לא נטענו נתונים מהשיטס: " + (err && err.message ? err.message : "שגיאה לא ידועה");
+      status.textContent = "לא הצלחנו לטעון את נתוני הלוח כרגע. בדקו שהגיליון מפורסם לכולם ונסו לרענן.";
       status.className = "error-note";
       status.style.display = "block";
     }
