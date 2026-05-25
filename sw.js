@@ -1,4 +1,4 @@
-const CACHE_NAME = "mishnayot-zaltsman-v42-v141-desktop-print";
+const CACHE_NAME = "mishnayot-zaltsman-v43-force-reload-assets";
 const ASSETS = [
   "./",
   "./index.html",
@@ -14,7 +14,7 @@ const ASSETS = [
 
 self.addEventListener("install", event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => Promise.all(ASSETS.map(asset => cache.add(asset))))
+    caches.open(CACHE_NAME).then(cache => Promise.all(ASSETS.map(asset => cache.add(new Request(asset, {cache: "reload"})))))
   );
   self.skipWaiting();
 });
@@ -28,10 +28,12 @@ self.addEventListener("activate", event => {
 
 self.addEventListener("fetch", event => {
   const req = event.request;
+  const url = new URL(req.url);
+  const isAppShell = req.mode === "navigate" || url.pathname.endsWith("/index.html") || url.pathname.endsWith("/mobile-app-final.js") || url.pathname.endsWith("/sw.js");
 
-  if (req.mode === "navigate" || req.url.endsWith("/index.html")) {
+  if (isAppShell) {
     event.respondWith(
-      fetch(req)
+      fetch(new Request(req, {cache: "reload"}))
         .then(res => {
           const copy = res.clone();
           caches.open(CACHE_NAME).then(cache => cache.put(req, copy));
