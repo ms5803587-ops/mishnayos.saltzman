@@ -1,4 +1,4 @@
-const CACHE_NAME = "mishnayot-zaltsman-v47-v146-clean-mobile-print";
+const CACHE_NAME = "mishnayot-zaltsman-v48-v147-mobile-accordion";
 const ASSETS = [
   "./",
   "./index.html",
