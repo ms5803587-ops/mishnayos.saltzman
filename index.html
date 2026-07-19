@@ -15,6 +15,12 @@
 <style>/* Legacy visual layers removed in v20. */</style>
 
 <link rel="stylesheet" href="app-v20.css?v=1">
+<script>
+if(new URLSearchParams(location.search).get("preview")==="v21"){
+ document.querySelectorAll("style,link[rel=stylesheet]").forEach(function(n){n.disabled=true});
+ var s=document.createElement("link");s.rel="stylesheet";s.href="app-v21.css?v=1";document.head.appendChild(s);
+}
+</script>
 
 <link rel="icon" href="site-icon-round.png">
 <link rel="apple-touch-icon" href="site-icon-round.png">
