@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#f6f3ed">
-<!-- BUILD: clean-light-redesign-v20 -->
+<!-- BUILD: rebuilt-light-application-v21 -->
 <title>לוח שנה למשניות משפחת זלצמן</title>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="mobile-web-app-capable" content="yes">
@@ -12,15 +12,9 @@
 <meta name="apple-mobile-web-app-title" content="לוח משניות">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-<style>/* Legacy visual layers removed in v20. */</style>
+<style>/* Visual system is loaded from the single v21 stylesheet. */</style>
 
-<link rel="stylesheet" href="app-v20.css?v=1">
-<script>
-if(new URLSearchParams(location.search).get("preview")==="v21"){
- document.querySelectorAll("style,link[rel=stylesheet]").forEach(function(n){n.disabled=true});
- var s=document.createElement("link");s.rel="stylesheet";s.href="app-v21.css?v=1";document.head.appendChild(s);
-}
-</script>
+<link rel="stylesheet" href="app-v21.css?v=1">
 
 <link rel="icon" href="site-icon-round.png">
 <link rel="apple-touch-icon" href="site-icon-round.png">
@@ -160,7 +154,7 @@ if(new URLSearchParams(location.search).get("preview")==="v21"){
   <section class="page" id="settingsPage">
     <div class="panel">
       <h3>הגדרות</h3>
-      <p class="muted">ניהול שם, מראה והעדפות בסיסיות.</p>
+      <p class="muted">ניהול השם, הסימונים, הגיבוי והתקנת האתר.</p>
 
       <div class="settings-boxes">
         <div class="settings-box">
@@ -1931,22 +1925,9 @@ function saveName(){
   localStorage.setItem(STORAGE_PREFIX+"name", name);
   refresh(); showToast("השם נשמר");
 }
-function toggleTheme(){
-  document.body.classList.toggle("light");
-  localStorage.setItem(STORAGE_PREFIX+"theme", document.body.classList.contains("light") ? "light" : "dark");
-  showToast("המראה עודכן");
-}
-
 function applyDefaultMobileTheme(){
-  const savedTheme = localStorage.getItem(STORAGE_PREFIX+"theme");
-  const mobile = window.matchMedia && window.matchMedia("(max-width: 680px)").matches;
-  if(savedTheme === "light"){
-    document.body.classList.add("light");
-  }else if(savedTheme === "dark"){
-    document.body.classList.remove("light");
-  }else if(mobile){
-    document.body.classList.add("light");
-  }
+  document.body.classList.add("light");
+  localStorage.setItem(STORAGE_PREFIX+"theme", "light");
 }
 
 function refresh(){
