@@ -449,6 +449,8 @@ select option{color:#17130d;background:#fff}
 
 /* Actions and settings */
 #actionsPage .actions-clean-panel{max-width:none!important}
+#settingsPage::before,
+#settingsPage::after{display:none!important;content:none!important}
 #actionsPage .actions-clean-panel>.muted,
 #settingsPage .panel>.muted{margin:5px 0 20px!important}
 #actionsPage .action-tiles,
@@ -483,6 +485,7 @@ select option{color:#17130d;background:#fff}
   color:var(--gold2)!important;
   box-shadow:none!important;
 }
+#settingsPage .settings-real-icon{display:none!important}
 #actionsPage .action-tile-clean .action-icon::before,
 #settingsPage .settings-real-icon::before{background:var(--gold2)!important}
 #actionsPage .action-tile-clean h4,
