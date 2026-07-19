@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#080705">
-<!-- BUILD: editorial-v17 -->
+<!-- BUILD: complete-redesign-v18 -->
 <title>לוח שנה למשניות משפחת זלצמן</title>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="mobile-web-app-capable" content="yes">
@@ -7609,11 +7609,11 @@ body.light .home-meta{
 }
 </style>
 
-<link rel="stylesheet" href="app-v17.css">
+<link rel="stylesheet" href="app-v18.css">
 
 <link rel="icon" href="site-icon-round.png">
 <link rel="apple-touch-icon" href="site-icon-round.png">
-<meta name="theme-color" content="#17140f">
+<meta name="theme-color" content="#17364c">
 
 </head>
 <body>
@@ -8537,7 +8537,7 @@ function setupCalendarControls(force){
     sel.dataset.loadedMonths = months.join("|");
 
     const todayMonth = currentToday ? (hebrewMonth(currentToday.hdate) || "ללא חודש") : "";
-    if(!localStorage.getItem(STORAGE_PREFIX+"calendarMonthTouched") && window.matchMedia && window.matchMedia("(max-width: 680px)").matches && todayMonth){
+    if(!localStorage.getItem(STORAGE_PREFIX+"calendarMonthTouched") && todayMonth){
       sel.value = todayMonth;
     }else{
       sel.value = months.includes(current) || current==="all" ? current : "all";
