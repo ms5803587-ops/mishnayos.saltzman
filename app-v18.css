@@ -198,10 +198,7 @@ button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-vis
   color:#fff!important;
 }
 .nav-ico{
-  width:19px!important;
-  height:19px!important;
-  opacity:.9!important;
-  background-color:currentColor!important;
+  display:none!important;
 }
 .date-time{
   order:3!important;
@@ -797,7 +794,7 @@ body.modal-open{overflow:hidden!important}
     border-radius:3px!important;
     font-size:10.5px!important;
   }
-  .nav-ico{width:17px!important;height:17px!important}
+  .nav-ico{display:none!important}
   .app{
     width:100%!important;
     max-width:none!important;
