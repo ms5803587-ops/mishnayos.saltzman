@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#080705">
-<!-- BUILD: mobile-inline-v15 -->
+<!-- BUILD: editorial-v17 -->
 <title>לוח שנה למשניות משפחת זלצמן</title>
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="mobile-web-app-capable" content="yes">
@@ -7609,9 +7609,11 @@ body.light .home-meta{
 }
 </style>
 
+<link rel="stylesheet" href="app-v17.css">
+
 <link rel="icon" href="site-icon-round.png">
 <link rel="apple-touch-icon" href="site-icon-round.png">
-<meta name="theme-color" content="#15110b">
+<meta name="theme-color" content="#17140f">
 
 </head>
 <body>
@@ -7654,9 +7656,9 @@ body.light .home-meta{
         <p class="home-learning" id="homeLearning">היום לומדים:</p>
         <div class="home-meta" id="homeMeta"></div><div class="loading-note" id="loadStatus">טוען נתונים מהגיליון...</div>
         <div class="actions-row">
-          <button id="markTodayBtn" type="button" class="btn" onclick="markToday()">סמן כנלמד</button>
+          <button id="markTodayBtn" type="button" class="btn">סמן כנלמד</button>
           <button id="openTodayCalendarBtn" type="button" class="btn primary" onclick="openTodayReader()">פתח קריאה</button>
-          <button id="homeCalendarBtn" type="button" class="btn" data-page="calendarPage" onclick="showPage('calendarPage')">כל הלוח</button>
+          <button id="homeCalendarBtn" type="button" class="btn" data-page="calendarPage">כל הלוח</button>
         </div>
       </div>
       <aside class="home-side">
@@ -7976,7 +7978,13 @@ const MISHNA_FILES = {
   "ביכורים": "MZ_BIKURIM_L1.txt"
 };
 let MISHNA_CACHE = {};
-const todayIsoReal = new Date().toISOString().slice(0,10);
+function localIsoDate(date = new Date()){
+  const y = date.getFullYear();
+  const m = String(date.getMonth()+1).padStart(2,"0");
+  const d = String(date.getDate()).padStart(2,"0");
+  return `${y}-${m}-${d}`;
+}
+const todayIsoReal = localIsoDate();
 let currentToday = null;
 let deferredInstallPrompt = null;
 
@@ -8142,16 +8150,6 @@ function bindHomeButtons(){
       e.preventDefault();
       e.stopPropagation();
       markToday();
-    });
-  }
-
-  const homeCalendarBtn = $("homeCalendarBtn");
-  if(homeCalendarBtn && !homeCalendarBtn.dataset.bound){
-    homeCalendarBtn.dataset.bound = "1";
-    homeCalendarBtn.addEventListener("click", function(e){
-      e.preventDefault();
-      e.stopPropagation();
-      showPage("calendarPage");
     });
   }
 
@@ -8726,9 +8724,16 @@ function importProgress(){
   }
   try{
     const payload = JSON.parse(decodeURIComponent(escape(atob(raw))));
-    if(!payload || typeof payload.done !== "object") throw new Error("bad payload");
-    setDone(payload.done || {});
-    if(payload.name) localStorage.setItem(STORAGE_PREFIX+"name", payload.name);
+    if(!payload || !payload.done || typeof payload.done !== "object" || Array.isArray(payload.done)) throw new Error("bad payload");
+    const validIds = new Set(DATA.map(x=>String(x.idx)));
+    const cleanDone = {};
+    Object.keys(payload.done).forEach(id=>{
+      if(validIds.has(String(id)) && payload.done[id] === true) cleanDone[id] = true;
+    });
+    setDone(cleanDone);
+    if(typeof payload.name === "string" && payload.name.trim()){
+      localStorage.setItem(STORAGE_PREFIX+"name", payload.name.trim().slice(0,60));
+    }
     refresh();
     showToast("הסימונים יובאו בהצלחה");
   }catch(e){
@@ -9472,68 +9477,6 @@ function buildAlignedPrintWeeks(rows){
 
 
 
-function printSelectedRange(){
-  if(!DATA || !DATA.length){
-    showToast("הנתונים עדיין לא נטענו");
-    return;
-  }
-
-  const rows = getPrintRowsByMode();
-  if(!rows.length){
-    showToast("לא נמצאו ימים להדפסה");
-    return;
-  }
-
-  const mode = $("printMode")?.value || "range";
-  const area = $("printArea");
-  const titleRange = `${escapeHtml(rows[0].hdate)} – ${escapeHtml(rows[rows.length-1].hdate)}`;
-  const headers = ["ראשון","שני","שלישי","רביעי","חמישי","שישי","שבת"];
-  const modeLabel = mode==="day" ? "הדפסה יומית" : mode==="week" ? "הדפסה שבועית" : mode==="month" ? `חודש ${escapeHtml($("printMonthSelect")?.value || "")}` : mode==="tractate" ? `לפי מסכת ${escapeHtml($("printTractateSelect")?.value || "")}` : "טווח תאריכים";
-
-  const weeks = buildCalendarWeeks(rows);
-
-  function shortLearningText(text){
-    return String(text || "")
-      .replace(/\s*\|\s*/g, " · ")
-      .replace(/\s+/g, " ")
-      .trim();
-  }
-
-  function shortDateText(text){
-    return String(text || "")
-      .replace(/תשפ["״]?ו/g, "")
-      .replace(/\s+/g, " ")
-      .trim();
-  }
-
-  function printCell(x){
-    if(!x) return `<td class="print-cal-empty"></td>`;
-    return `<td class="print-cal-cell">
-      <div class="print-date">${escapeHtml(shortDateText(x.hdate))}</div>
-      <div class="print-learning">${escapeHtml(shortLearningText(x.chapters))}</div>
-    </td>`;
-  }
-
-  area.innerHTML = `
-    <div class="print-page calendar-print compact-calendar-print">
-      <h1 class="print-title">לוח שנה למשניות משפחת זלצמן</h1>
-      <p class="print-subtitle">${modeLabel} · ${titleRange} · ${rows.length} ימים</p>
-      <table class="print-calendar-table">
-        <thead><tr>${headers.map(h=>`<th>${h}</th>`).join("")}</tr></thead>
-        <tbody>${weeks.map(w=>`<tr>${w.map(printCell).join("")}</tr>`).join("")}</tbody>
-      </table>
-    </div>`;
-
-  closePrintPicker();
-  document.body.classList.add("print-mode");
-  setTimeout(()=>window.print(),180);
-}
-
-
-
-
-
-
 window.addEventListener("afterprint",()=>{document.body.classList.remove("print-mode");$("printArea").innerHTML="";});
 
 
@@ -9613,7 +9556,16 @@ function refresh(){
   try{ if($("nameInput")) $("nameInput").value=getName(); }catch(e){ console.error("name input error:", e); }
 }
 
-window.addEventListener("keydown", e=>{if(e.key==="Escape") closeModal(); if(e.key.toLowerCase()==="h") showPage("homePage")})
+window.addEventListener("keydown", e=>{
+  const typing = e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName);
+  if(e.key === "Escape"){
+    closeModal();
+    closeBulkModal();
+    closeMessageFormBox();
+    closePrintPicker();
+  }
+  if(!typing && !e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase()==="h") showPage("homePage");
+})
 window.addEventListener("load",()=>{applyDefaultMobileTheme();showPage("homePage");updateGreeting();updateClock();loadSheetData();});
 
 window.addEventListener("beforeinstallprompt", e=>{
@@ -9700,28 +9652,6 @@ window.addEventListener("load", ()=>{
 
 function bindCriticalHomeButtonsHard(){
   bindHomeButtons();
-
-  if(!window.__criticalHomeButtonsBound){
-    window.__criticalHomeButtonsBound = true;
-
-    document.addEventListener("click", function(e){
-      const mark = e.target.closest && e.target.closest("#markTodayBtn");
-      if(mark){
-        e.preventDefault();
-        e.stopPropagation();
-        markToday();
-        return;
-      }
-
-      const cal = e.target.closest && e.target.closest("#homeCalendarBtn");
-      if(cal){
-        e.preventDefault();
-        e.stopPropagation();
-        showPage("calendarPage");
-        return;
-      }
-    }, true);
-  }
 }
 document.addEventListener("DOMContentLoaded", bindCriticalHomeButtonsHard);
 window.addEventListener("load", bindCriticalHomeButtonsHard);
@@ -9839,56 +9769,6 @@ document.addEventListener("DOMContentLoaded", setupMobileMapLongPressInfo);
 window.addEventListener("load", setupMobileMapLongPressInfo);
 setTimeout(setupMobileMapLongPressInfo, 0);
 setTimeout(setupMobileMapLongPressInfo, 800);
-
-(function(){
-  if(window.__mapLongPressInlineBound) return;
-  window.__mapLongPressInlineBound = true;
-  let timer = null;
-  let shown = false;
-  let tip = null;
-  function mobile(){ return window.matchMedia && window.matchMedia("(max-width:680px)").matches; }
-  function escText(v){ return String(v || "").replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m])); }
-  function hide(){ if(tip) tip.remove(); tip = null; }
-  function show(dot){
-    const text = dot.getAttribute("data-tip") || "";
-    if(!text || !mobile()) return;
-    hide();
-    const rect = dot.getBoundingClientRect();
-    tip = document.createElement("div");
-    tip.className = "map-mobile-tip";
-    tip.innerHTML = `<b>פרטי היום</b>${escText(text)}`;
-    document.body.appendChild(tip);
-    const margin = 10;
-    const box = tip.getBoundingClientRect();
-    let left = rect.left + rect.width / 2 - box.width / 2;
-    let top = rect.top - box.height - 10;
-    if(left < margin) left = margin;
-    if(left + box.width + margin > innerWidth) left = innerWidth - box.width - margin;
-    if(top < margin) top = rect.bottom + 10;
-    if(top + box.height + margin > innerHeight) top = innerHeight - box.height - margin;
-    tip.style.left = left + "px";
-    tip.style.top = top + "px";
-    shown = true;
-    setTimeout(hide, 3600);
-  }
-  document.addEventListener("pointerdown", e=>{
-    const dot = e.target.closest && e.target.closest(".year-map .dot:not(.dot-empty)");
-    if(!dot || !mobile()) return;
-    shown = false;
-    clearTimeout(timer);
-    timer = setTimeout(()=>show(dot), 620);
-  }, true);
-  ["pointerup","pointercancel","pointerleave"].forEach(type=>document.addEventListener(type,()=>clearTimeout(timer),true));
-  document.addEventListener("click", e=>{
-    const dot = e.target.closest && e.target.closest(".year-map .dot:not(.dot-empty)");
-    if(dot && mobile() && shown){
-      e.preventDefault();
-      e.stopPropagation();
-      shown = false;
-    }
-  }, true);
-})();
-
 
 if("serviceWorker" in navigator){
   window.addEventListener("load", ()=>{
