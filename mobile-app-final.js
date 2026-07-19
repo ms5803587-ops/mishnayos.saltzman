@@ -1,10 +1,11 @@
-/* Mishnayos calendar — stability and mobile layer, v17 */
+/* Mishnayos calendar — stability and responsive layer, v20 */
 (function(){
   "use strict";
 
   const MOBILE_QUERY = "(max-width: 680px)";
-  const CACHE_KEY = "zaltsman_mishnayos_sheet_cache_v17";
+  const CACHE_KEY = "zaltsman_mishnayos_sheet_cache_v18";
   const MAP_STATE_KEY = "zaltsman_mishnayos_map_collapsed";
+  const DESIGN_KEY = "zaltsman_mishnayos_design_v18";
   const $ = id => document.getElementById(id);
   const isMobile = () => !!(window.matchMedia && window.matchMedia(MOBILE_QUERY).matches);
   const rows = () => {
@@ -22,7 +23,7 @@
     })[char]);
   };
 
-  document.documentElement.classList.add("v17");
+  document.documentElement.classList.add("v18");
 
   function localToday(){
     const d = new Date();
@@ -255,18 +256,21 @@
 
   function updateThemeColor(){
     const meta = document.querySelector('meta[name="theme-color"]');
-    if(meta) meta.content = document.body.classList.contains("light") ? "#eee9df" : "#17140f";
+    if(meta) meta.content = "#f6f3ed";
   }
-  const baseToggleTheme = window.toggleTheme;
-  if(typeof baseToggleTheme === "function"){
-    window.toggleTheme = function(){
-      baseToggleTheme.apply(this, arguments);
-      updateThemeColor();
-    };
-  }
+  window.toggleTheme = function(){
+    document.body.classList.add("light");
+    try{ localStorage.setItem("zaltsman_mishnayos_theme","light"); }catch(_){}
+    updateThemeColor();
+  };
 
   function setup(){
-    document.body.classList.add("v17");
+    document.body.classList.remove("v17","v18","v19");
+    document.body.classList.add("v20","light");
+    try{
+      localStorage.setItem("zaltsman_mishnayos_theme","light");
+      localStorage.setItem(DESIGN_KEY,"1");
+    }catch(_){}
     restoreMapState();
     syncModalState();
     updateThemeColor();
