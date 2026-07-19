@@ -1,9 +1,9 @@
-const CACHE_NAME = "mishnayot-zaltsman-v21-rebuilt-light-application";
+const CACHE_NAME = "mishnayot-zaltsman-v22-editorial-workspace";
 const ASSETS = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
-  "./app-v21.css",
+  "./app-v22.css",
   "./mobile-app-final.js",
   "./logo.png",
   "./header-logo.png",
@@ -52,7 +52,7 @@ self.addEventListener("fetch", event => {
 
   const isAppShell = req.mode === "navigate"
     || url.pathname.endsWith("/index.html")
-    || url.pathname.endsWith("/app-v21.css")
+    || url.pathname.endsWith("/app-v22.css")
     || url.pathname.endsWith("/mobile-app-final.js")
     || url.pathname.endsWith("/sw.js");
 
