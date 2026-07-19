@@ -1,4 +1,4 @@
-/* Mishnayos calendar — stability and responsive layer, v20 */
+/* Mishnayos calendar — stability and responsive layer, v21 */
 (function(){
   "use strict";
 
@@ -265,8 +265,8 @@
   };
 
   function setup(){
-    document.body.classList.remove("v17","v18","v19");
-    document.body.classList.add("v20","light");
+    document.body.classList.remove("v17","v18","v19","v20");
+    document.body.classList.add("v21","light");
     try{
       localStorage.setItem("zaltsman_mishnayos_theme","light");
       localStorage.setItem(DESIGN_KEY,"1");
