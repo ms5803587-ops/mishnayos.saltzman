@@ -7610,6 +7610,15 @@ body.light .home-meta{
 </style>
 
 <link rel="stylesheet" href="app-v18.css?v=2">
+<script>
+if(new URLSearchParams(location.search).get("preview")==="v20"){
+  document.querySelectorAll("style,link[rel=stylesheet]").forEach(function(node){ node.disabled=true; });
+  var previewCss=document.createElement("link");
+  previewCss.rel="stylesheet";
+  previewCss.href="app-v20.css?v=2";
+  document.head.appendChild(previewCss);
+}
+</script>
 
 <link rel="icon" href="site-icon-round.png">
 <link rel="apple-touch-icon" href="site-icon-round.png">
