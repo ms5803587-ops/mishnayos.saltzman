@@ -1,0 +1,2385 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#f6f3ed">
+<!-- BUILD: clean-light-redesign-v20 -->
+<title>לוח שנה למשניות משפחת זלצמן</title>
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="לוח משניות">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<style>/* Legacy visual layers removed in v20. */</style>
+
+<link rel="stylesheet" href="app-v20.css?v=1">
+
+<link rel="icon" href="site-icon-round.png">
+<link rel="apple-touch-icon" href="site-icon-round.png">
+<meta name="theme-color" content="#f6f3ed">
+
+</head>
+<body>
+<div class="intro">
+  <div class="intro-card">
+    <img src="logo.png" alt="לוגו" class="intro-logo">
+    <div class="intro-text-wrap">
+      <h1>לוח שנה למשניות משפחת זלצמן</h1>
+      <p id="introGreeting">ברוכים הבאים</p>
+    </div>
+  </div>
+</div>
+
+<header class="site-header">
+  <div class="header-inner">
+    <div class="brand brand-logo-only">
+      <button type="button" class="header-logo-link" onclick="showPage('homePage')" aria-label="חזרה לדף הבית">
+        <img src="header-logo.png" alt="לוגו עליון" class="header-logo">
+      </button>
+      <small id="topGreeting">ברוכים הבאים</small>
+    </div>
+    <nav class="tabs" aria-label="ניווט">
+      <button class="tab active" data-page="homePage"><span class="nav-ico nav-home" aria-hidden="true"></span><span>דף הבית</span></button>
+      <button class="tab" data-page="calendarPage"><span class="nav-ico nav-calendar" aria-hidden="true"></span><span>כל הלוח</span></button>
+      <button class="tab" data-page="actionsPage"><span class="nav-ico nav-actions" aria-hidden="true"></span><span>פעולות</span></button>
+      <button class="tab" data-page="settingsPage"><span class="nav-ico nav-settings" aria-hidden="true"></span><span>הגדרות</span></button>
+    </nav>
+    <div class="date-time" id="dateTime">--</div>
+  </div>
+</header>
+
+<div class="app">
+  <section class="page active" id="homePage">
+    <div class="admin-message" id="adminMessageBox"></div>
+    <button class="message-alert" id="messageAlert" onclick="openMessageModal()"></button>
+    <div class="home-hero">
+      <div class="home-main">
+        <div class="home-kicker" id="homeKicker">דף הבית</div>
+        <h2 id="homeTitle">היום</h2>
+        <p class="home-learning" id="homeLearning">היום לומדים:</p>
+        <div class="home-meta" id="homeMeta"></div><div class="loading-note" id="loadStatus">טוען נתונים מהגיליון...</div>
+        <div class="actions-row">
+          <button id="markTodayBtn" type="button" class="btn">סמן כנלמד</button>
+          <button id="openTodayCalendarBtn" type="button" class="btn primary" onclick="openTodayReader()">פתח קריאה</button>
+          <button id="homeCalendarBtn" type="button" class="btn" data-page="calendarPage">כל הלוח</button>
+        </div>
+      </div>
+      <aside class="home-side">
+        <div class="map-head"><div><h3>מפת סימונים</h3><p class="muted">לחיצה מסמנת או מבטלת. לחיצה ארוכה מציגה את פרטי היום.</p></div><button type="button" class="btn small map-toggle" onclick="toggleMapPanel()">הצג / הסתר</button></div>
+        <div class="progress"><span id="progressFill"></span></div>
+        <div class="stats">
+          <div class="stat"><b id="doneCount">0</b><span>ימים נלמדו</span></div>
+          <div class="stat"><b id="leftCount">0</b><span>ימים נותרו</span></div>
+          <div class="stat"><b id="percentCount">0%</b><span>הושלם</span></div>
+        </div>
+        <div class="year-map" id="yearMap"></div>
+      </aside>
+    </div>
+</section>
+
+  <section class="page" id="calendarPage">
+    <div class="panel">
+      <div class="calendar-topline">
+        <h3>כל הלוח</h3>
+        <div class="calendar-quick-actions">
+          <button class="btn primary" onclick="openTodayInCalendar()">היום</button>
+          <div class="mobile-month-nav" aria-label="ניווט חודשים"><button type="button" class="btn month-step" onclick="mobileCalendarMonthStep(-1)">הקודם</button><button type="button" class="btn month-step" onclick="mobileCalendarMonthStep(1)">הבא</button></div><button class="btn" onclick="clearCalendarFilters()">נקה סינון</button>
+        </div>
+      </div>
+      <div class="toolbar calendar-toolbar">
+        <div class="calendar-search-wrap"><input class="search" id="search" placeholder="לדוגמה: סיוון, יום ראשון, ברכות, פרק א" oninput="renderCalendar()"><button type="button" class="search-clear-btn" onclick="clearCalendarSearch()" aria-label="נקה חיפוש">×</button></div>
+        <select id="calendarMonthSelect" onchange="renderCalendar()">
+          <option value="all">כל החודשים</option>
+        </select>
+        <label class="check-filter"><input type="checkbox" id="onlyUndoneFilter" onchange="renderCalendar()"> רק לא נלמדו</label>
+      </div>
+      <div id="calendar"></div>
+    </div>
+  </section>
+
+  <section class="page" id="actionsPage">
+
+    <div class="panel actions-clean-panel">
+      <h3>פעולות</h3>
+      <p class="muted">בחר פעולה מהרשימה.</p>
+
+      <div class="action-tiles actions-grid-clean">
+
+        <div class="action-tile action-tile-clean">
+          <div>
+            <div class="action-icon">✓</div>
+            <h4>סימון מרוכז</h4>
+            <p>סימון או ביטול סימון לפי שבוע או חודש.</p>
+          </div>
+          <button class="btn primary" onclick="openBulkModal()">פתח סימון מרוכז</button>
+        </div>
+
+        <div class="action-tile action-tile-clean">
+          <div>
+            <div class="action-icon">☷</div>
+            <h4>הדפסה מעוצבת</h4>
+            <p>ייצוא לוח מסודר ומעוצב לפי טווח תאריכים.</p>
+          </div>
+          <button class="btn primary" onclick="openPrintPicker()">פתח הדפסה מעוצבת</button>
+        </div>
+
+        <div class="action-tile action-tile-clean">
+          <div>
+            <div class="action-icon">↗</div>
+            <h4>קישור לאתר</h4>
+            <p>העתקת הקישור והדרכה להוספה לשולחן העבודה.</p>
+          </div>
+          <div class="tile-buttons">
+            <button class="btn primary" onclick="copySiteLink()">העתק קישור</button>
+            <button class="btn" onclick="showShortcutHelp()">איך מוסיפים?</button>
+          </div>
+        </div>
+
+        <div class="action-tile action-tile-clean">
+          <div>
+            <div class="action-icon">✉</div>
+            <h4>שליחת הודעה</h4>
+            <p>שליחת הודעה למנהל דרך טופס מסודר.</p>
+          </div>
+          <button class="btn primary" onclick="openMessageFormBox()">פתח טופס שליחת הודעה</button>
+        </div>
+
+      </div>
+    </div>
+
+  </section>
+
+  <section class="page" id="settingsPage">
+    <div class="panel">
+      <h3>הגדרות</h3>
+      <p class="muted">ניהול שם, מראה והעדפות בסיסיות.</p>
+
+      <div class="settings-boxes">
+        <div class="settings-box">
+          <span class="settings-real-icon settings-user-icon" aria-hidden="true"></span>
+          <h4>שם המשתמש</h4>
+          <div class="form-row">
+            <label>השם שיופיע בדף הבית</label>
+            <input id="nameInput" placeholder="הכנס שם">
+            <button class="btn primary" onclick="saveName()">שמור שם</button>
+          </div>
+        </div>
+
+        <div class="settings-box">
+          <span class="settings-real-icon settings-save-icon" aria-hidden="true"></span>
+          <h4>סימונים</h4>
+          <p class="muted">איפוס או גיבוי הסימונים ששמורים בדפדפן הזה.</p>
+          <div class="actions-row">
+            <button class="btn danger" onclick="confirmResetProgress()">איפוס הסימונים שלי</button>
+            <button class="btn" onclick="exportProgress()">ייצוא מצב</button>
+<div class="settings-export-note">
+  <b>מה זה יצוא הגדרות?</b><br>
+  פעולה זו שומרת אצלך קובץ קטן עם ההגדרות והסימונים האישיים שלך, כדי שתוכל לגבות אותם או להעביר אותם למכשיר אחר. הקובץ לא נשלח אלינו.
+</div>
+
+          </div>
+        </div>
+
+        <div class="settings-box">
+          <span class="settings-real-icon settings-import-icon" aria-hidden="true"></span>
+          <h4>ייבוא גיבוי</h4>
+          <p class="muted">הדבק כאן קוד גיבוי שהעתקת ממכשיר אחר.</p>
+          <textarea id="progressImportBox" class="backup-box" placeholder="הדבק כאן קוד גיבוי"></textarea>
+          <button class="btn primary" onclick="importProgress()">ייבוא סימונים</button>
+        </div>
+
+        <div class="settings-box">
+          <span class="settings-real-icon settings-phone-icon" aria-hidden="true"></span>
+          <h4>התקנה כאפליקציה</h4>
+          <p class="muted">אפשר להוסיף את האתר למסך הבית. בדפדפן נתמך האתר ייפתח בצורה נקייה יותר כמו אפליקציה.</p>
+          <button class="btn" onclick="showPwaHelp()">איך מתקינים?</button>
+        </div>
+
+      </div>
+    </div>
+  </section>
+</div>
+
+<div class="modal" id="modal" onclick="if(event.target.id==='modal') closeModal()">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2 id="modalTitle"></h2>
+      <button class="close" onclick="closeModal()">×</button>
+    </div>
+    <div id="modalBody"></div>
+    <div class="actions-row">
+      <button class="btn primary" id="modalDoneBtn">סמן כנלמד</button>
+      <button class="btn" onclick="closeModal()">סגור</button>
+    </div>
+  </div>
+</div>
+
+
+
+<div class="modal" id="bulkModal" onclick="if(event.target.id==='bulkModal') closeBulkModal()">
+  <div class="modal-box">
+    <div class="modal-head">
+      <h2>סימון מרוכז</h2>
+      <button class="close" onclick="closeBulkModal()">×</button>
+    </div>
+
+    <div class="form-grid">
+      <div class="form-row">
+        <label>בחר שבוע לפי פרשה / שבת</label>
+        <select id="weekSelectModal"></select>
+        <div class="actions-row">
+          <button class="btn primary" onclick="markRangeFromModal('week', true)">סמן שבוע כנלמד</button>
+          <button class="btn danger" onclick="markRangeFromModal('week', false)">בטל סימון שבוע</button>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label>בחר חודש עברי</label>
+        <select id="monthSelectModal"></select>
+        <div class="actions-row">
+          <button class="btn primary" onclick="markRangeFromModal('month', true)">סמן חודש כנלמד</button>
+          <button class="btn danger" onclick="markRangeFromModal('month', false)">בטל סימון חודש</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions-row">
+      <button class="btn danger" onclick="confirmResetProgress()">איפוס כל הסימונים</button>
+      <button class="btn" onclick="closeBulkModal()">סגור</button>
+    </div>
+  </div>
+</div>
+
+
+<div class="modal" id="messageFormModal" onclick="if(event.target.id==='messageFormModal') closeMessageFormBox()">
+  <div class="modal-box message-form-modal-box">
+    <div class="modal-head">
+      <h2>שליחת הודעה למנהל</h2>
+      <button class="close" onclick="closeMessageFormBox()">×</button>
+    </div>
+
+    <div class="form-embed-wrap modal-form-embed">
+      <iframe
+        class="google-form-frame"
+        src="https://docs.google.com/forms/d/e/1FAIpQLSe4UbWZiPFnvy5jqcv0p5TVCIIKytLv7KLfmInb0iANTIyzvA/viewform?embedded=true"
+        frameborder="0"
+        marginheight="0"
+        marginwidth="0"
+        loading="lazy">טוען…</iframe>
+    </div>
+
+    <div class="actions-row">
+      <a class="btn" href="https://docs.google.com/forms/d/e/1FAIpQLSe4UbWZiPFnvy5jqcv0p5TVCIIKytLv7KLfmInb0iANTIyzvA/viewform" target="_blank" rel="noopener">פתח בחלון נפרד</a>
+      <button class="btn" onclick="closeMessageFormBox()">סגור</button>
+    </div>
+  </div>
+</div>
+
+
+
+
+
+
+
+<div id="printPicker" onclick="if(event.target.id==='printPicker') closePrintPicker()">
+  <div class="print-picker-box">
+    <h3>הדפסה מעוצבת</h3>
+    <div class="form-grid">
+      <div class="form-row">
+        <label>סוג הדפסה</label>
+        <select id="printMode" onchange="syncPrintMode()">
+          <option value="range">טווח תאריכים</option>
+          <option value="day">יום אחד</option>
+          <option value="week">שבוע</option>
+          <option value="month">חודש עברי</option>
+          <option value="tractate">לפי מסכת</option>
+        </select>
+<div class="print-mode-tiles" id="printModeTiles" aria-label="בחירת סוג הדפסה">
+  <button type="button" class="print-mode-tile active" data-print-mode="range" onclick="setPrintModeTile('range')">
+    <b>טווח</b><span>מתאריך עד תאריך</span>
+  </button>
+  <button type="button" class="print-mode-tile" data-print-mode="day" onclick="setPrintModeTile('day')">
+    <b>יום אחד</b><span>בחירת יום בודד</span>
+  </button>
+  <button type="button" class="print-mode-tile" data-print-mode="week" onclick="setPrintModeTile('week')">
+    <b>שבוע</b><span>שבוע מלא</span>
+  </button>
+  <button type="button" class="print-mode-tile" data-print-mode="month" onclick="setPrintModeTile('month')">
+    <b>חודש</b><span>חודש עברי</span>
+  </button>
+  <button type="button" class="print-mode-tile" data-print-mode="tractate" onclick="setPrintModeTile('tractate')">
+    <b>מסכת</b><span>לפי מסכת</span>
+  </button>
+</div>
+
+      </div>
+      <div class="form-row" id="printStartRow">
+        <label>מתאריך</label>
+        <select id="printStart"></select>
+      </div>
+      <div class="form-row" id="printEndRow">
+        <label>עד תאריך</label>
+        <select id="printEnd"></select>
+      </div>
+      <div class="form-row" id="printMonthRow" style="display:none">
+        <label>בחר חודש</label>
+        <select id="printMonthSelect"></select>
+      </div>
+      <div class="form-row" id="printTractateRow" style="display:none">
+        <label>בחר מסכת</label>
+        <select id="printTractateSelect"></select>
+      </div>
+    </div>
+    <div class="actions-row">
+      
+<button type="button" class="btn print-mobile-alt-btn" onclick="openPrintPreviewPage()">
+  פתח תצוגת הדפסה בדף חדש
+</button>
+<p class="print-mobile-hint">
+  בסמארטפון שמירה ל־PDF לא תמיד עובדת טוב. הכפתור הזה פותח דף נקי שאפשר לשמור, לשתף או להדפיס ממנו.
+</p>
+<button class="btn primary" onclick="printSelectedRange()">ייצא / הדפס</button>
+      <button class="btn" onclick="closePrintPicker()">סגור</button>
+    </div>
+  </div>
+</div>
+
+<div id="printArea"></div>
+<div class="toast" id="toast">הפעולה בוצעה</div>
+<button type="button" class="mobile-floating-today" onclick="openTodayInCalendar()">היום</button>
+
+<script>
+const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTx69XyjxtuKeYCHbCdaDlgVnaaCdChrgy5WYMn0daPPNdD-HVV0VQNBseqWfwoSvYIXcG5Pu6hYBlD/pub?output=csv";
+const SHEET_CSV_URLS = [
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTx69XyjxtuKeYCHbCdaDlgVnaaCdChrgy5WYMn0daPPNdD-HVV0VQNBseqWfwoSvYIXcG5Pu6hYBlD/pub?output=csv",
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTx69XyjxtuKeYCHbCdaDlgVnaaCdChrgy5WYMn0daPPNdD-HVV0VQNBseqWfwoSvYIXcG5Pu6hYBlD/pub?gid=0&single=true&output=csv",
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vTx69XyjxtuKeYCHbCdaDlgVnaaCdChrgy5WYMn0daPPNdD-HVV0VQNBseqWfwoSvYIXcG5Pu6hYBlD/gviz/tq?tqx=out:csv"
+];
+const MESSAGES_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTx69XyjxtuKeYCHbCdaDlgVnaaCdChrgy5WYMn0daPPNdD-HVV0VQNBseqWfwoSvYIXcG5Pu6hYBlD/pub?gid=1071009578&single=true&output=csv";
+let DATA = [];
+const FALLBACK_DATA = [];
+let ADMIN_MESSAGES = [];
+const STORAGE_PREFIX = "zaltsman_mishnayos_";
+const MISHNA_FILES = {
+  "ברכות": "MZ_BRAHOT_L1.txt",
+  "פאה": "MZ_PEAA_L1.txt",
+  "דמאי": "MZ_DEMAY_L1.txt",
+  "כלאים": "MZ_KILAIIM_L1.txt",
+  "שביעית": "MZ_SHVIIT_L1.txt",
+  "תרומות": "MZ_TRUMOT_L1.txt",
+  "מעשרות": "MZ_MEASROT_L1.txt",
+  "מעשר שני": "MZ_MEASER_SHENI_L1.txt",
+  "חלה": "MZ_HALA_L1.txt",
+  "ערלה": "MZ_ORLA_L1.txt",
+  "ביכורים": "MZ_BIKURIM_L1.txt"
+};
+let MISHNA_CACHE = {};
+function localIsoDate(date = new Date()){
+  const y = date.getFullYear();
+  const m = String(date.getMonth()+1).padStart(2,"0");
+  const d = String(date.getDate()).padStart(2,"0");
+  return `${y}-${m}-${d}`;
+}
+const todayIsoReal = localIsoDate();
+let currentToday = null;
+let deferredInstallPrompt = null;
+
+function $(id){return document.getElementById(id)}
+function getDone(){try{return JSON.parse(localStorage.getItem(STORAGE_PREFIX+"done")||"{}")}catch(e){return {}}}
+function setDone(obj){localStorage.setItem(STORAGE_PREFIX+"done", JSON.stringify(obj))}
+function getName(){return localStorage.getItem(STORAGE_PREFIX+"name") || "משתמש"}
+
+function doneButtonText(idx){
+  return getDone()[idx] ? "בטל סימון" : "סמן כנלמד";
+}
+function setDoneButtonText(btn, idx){
+  if(btn) btn.textContent = doneButtonText(idx);
+}
+
+function showToast(msg="הפעולה בוצעה"){const t=$("toast");t.textContent=msg;t.classList.add("show");clearTimeout(window.__toast);window.__toast=setTimeout(()=>t.classList.remove("show"),1800)}
+function escapeHtml(s){return String(s).replace(/[&<>"']/g, m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[m]))}
+
+function flashDoneChange(idx){
+  setTimeout(()=>{
+    document.querySelectorAll(`[data-day-idx="${idx}"]`).forEach(el=>{
+      el.classList.remove("done-pop");
+      void el.offsetWidth;
+      el.classList.add("done-pop");
+    });
+  }, 80);
+}
+
+function parseCSV(text){
+  const rows = [];
+  let row = [], cell = "", inQuotes = false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i], n=text[i+1];
+    if(c === '"' && inQuotes && n === '"'){ cell += '"'; i++; continue; }
+    if(c === '"'){ inQuotes = !inQuotes; continue; }
+    if(c === "," && !inQuotes){ row.push(cell); cell=""; continue; }
+    if((c === "\n" || c === "\r") && !inQuotes){
+      if(c === "\r" && n === "\n") i++;
+      row.push(cell); cell="";
+      if(row.some(v=>String(v).trim() !== "")) rows.push(row);
+      row=[];
+      continue;
+    }
+    cell += c;
+  }
+  row.push(cell);
+  if(row.some(v=>String(v).trim() !== "")) rows.push(row);
+  return rows;
+}
+
+
+function formatMessageText(s){
+  return escapeHtml(s || "")
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    .replace(/\n/g, "<br>");
+}
+
+function extractAdminMessages(rows){
+  ADMIN_MESSAGES = [];
+  if(!rows || !rows.length) return;
+
+  const header = rows[0].map(x=>String(x||"").trim());
+  const titleCol = header.indexOf("כותרת");
+  const msgCol = header.indexOf("הודעה");
+  const activeCol = header.indexOf("פעיל");
+  const dateCol = header.indexOf("תאריך");
+
+  // חשוב: לא להציג הודעות משתמשים רגילות בדף הבית.
+  // הודעת מנהל תזוהה רק אם יש עמודת "פעיל" או עמודת "כותרת".
+  if(msgCol < 0) return;
+  if(activeCol < 0 && titleCol < 0) return;
+
+  rows.slice(1).forEach(r=>{
+    const msg = String(r[msgCol] || "").trim();
+    if(!msg) return;
+
+    const active = activeCol >= 0 ? String(r[activeCol] || "").trim() : "כן";
+    if(active && !["כן","TRUE","true","1","פעיל"].includes(active)) return;
+
+    ADMIN_MESSAGES.push({
+      title: titleCol >= 0 ? String(r[titleCol] || "").trim() : "",
+      message: msg,
+      date: dateCol >= 0 ? String(r[dateCol] || "").trim() : ""
+    });
+  });
+}
+function renderAdminMessage(){
+  const oldBox = $("adminMessageBox");
+  if(oldBox){
+    oldBox.classList.remove("show");
+    oldBox.innerHTML = "";
+  }
+  const alert = $("messageAlert");
+  if(!alert) return;
+  const item = ADMIN_MESSAGES && ADMIN_MESSAGES[0];
+  if(!item || !item.message){
+    alert.classList.remove("show");
+    alert.innerHTML = "";
+    return;
+  }
+  alert.innerHTML = `<span><span class="message-alert-title">יש הודעה חדשה</span><br><small>${escapeHtml(item.title || "לחץ לקריאה")}</small></span><span>פתח</span>`;
+  alert.classList.add("show");
+}
+
+
+async function loadMessagesData(){
+  try{
+    const bust = (MESSAGES_CSV_URL.includes("?") ? "&" : "?") + "cacheBust=" + Date.now();
+    const res = await fetch(MESSAGES_CSV_URL + bust, {cache:"no-store"});
+    if(!res.ok) throw new Error("שגיאת טעינת הודעות");
+    const text = await res.text();
+    const rows = parseCSV(text);
+    extractAdminMessages(rows);
+    renderAdminMessage();
+  }catch(err){
+    console.error("Messages load error:", err);
+    ADMIN_MESSAGES = [];
+    renderAdminMessage();
+  }
+}
+
+function normalizeSheetRows(rows){
+  if(!rows || !rows.length) return [];
+  const first = rows[0].map(x=>String(x||"").trim());
+  const headerNames = ["תאריך עברי","עברי","יום","יום / פרשה","יום ופרשה","פרשה","הספק","פרקים","משניות","לימוד","תאריך לועזי","לועזי","date","Date"];
+  const hasHeader = first.some(x => headerNames.includes(x));
+  const body = hasHeader ? rows.slice(1) : rows;
+  const header = hasHeader ? first : [];
+  function col(names, fallback){
+    for(const name of names){
+      const idx = header.indexOf(name);
+      if(idx >= 0) return idx;
+    }
+    return fallback;
+  }
+  const hdateCol = col(["תאריך עברי","עברי"], 0);
+  const dayCol = col(["יום","יום / פרשה","יום ופרשה","פרשה"], 1);
+  const chaptersCol = col(["הספק","פרקים","משניות","לימוד"], 2);
+  const isoCol = col(["תאריך לועזי","לועזי","date","Date"], -1);
+  const startDate = new Date("2026-04-13T12:00:00");
+  return body.map((r,i)=>{
+    const hdate = String(r[hdateCol] || "").trim();
+    const day = String(r[dayCol] || "").trim();
+    const chapters = String(r[chaptersCol] || "").trim();
+    let iso = isoCol >= 0 ? String(r[isoCol] || "").trim() : "";
+    if(!iso){
+      const d = new Date(startDate);
+      d.setDate(startDate.getDate()+i);
+      iso = d.toISOString().slice(0,10);
+    }
+    return {idx:i+1, iso, hdate, day, chapters};
+  }).filter(x=>x.hdate || x.day || x.chapters);
+}
+
+
+
+
+function bindHomeButtons(){
+  const markBtn = $("markTodayBtn");
+  if(markBtn && !markBtn.dataset.bound){
+    markBtn.dataset.bound = "1";
+    markBtn.addEventListener("click", function(e){
+      e.preventDefault();
+      e.stopPropagation();
+      markToday();
+    });
+  }
+
+  document.querySelectorAll("[data-page]").forEach(btn=>{
+    if(!btn.dataset.pageBound){
+      btn.dataset.pageBound = "1";
+      btn.addEventListener("click", function(e){
+        e.preventDefault();
+        const target = btn.dataset.page;
+        if(target) showPage(target);
+      });
+    }
+  });
+}
+
+
+
+function useFallbackData(){
+  DATA = [];
+  currentToday = null;
+  refresh();
+  const status = $("loadStatus");
+  if(status){
+    status.textContent = "לא נטענו נתונים מהשיטס. בדוק שהגיליון מפורסם כ-CSV.";
+    status.className = "error-note";
+    status.style.display = "block";
+  }
+}
+
+
+
+
+const SHEET_GVIZ_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTx69XyjxtuKeYCHbCdaDlgVnaaCdChrgy5WYMn0daPPNdD-HVV0VQNBseqWfwoSvYIXcG5Pu6hYBlD/gviz/tq";
+
+function gvizTableToRows(table){
+  const cols = (table.cols || []).map(c => c.label || c.id || "");
+  const body = (table.rows || []).map(r => (r.c || []).map(c => {
+    if(!c) return "";
+    if(typeof c.f === "string" && c.f.trim()) return c.f;
+    if(c.v == null) return "";
+    return String(c.v);
+  }));
+  return [cols].concat(body);
+}
+
+function loadGvizJsonp(){
+  return new Promise((resolve, reject) => {
+    const cbName = "__mishnaGvizCb_" + Date.now() + "_" + Math.floor(Math.random()*10000);
+    const script = document.createElement("script");
+    const timeout = setTimeout(() => {
+      cleanup();
+      reject(new Error("GViz JSONP timeout"));
+    }, 12000);
+
+    function cleanup(){
+      clearTimeout(timeout);
+      script.remove();
+      try{ delete window[cbName]; }catch(e){ window[cbName] = undefined; }
+    }
+
+    window[cbName] = function(response){
+      try{
+        cleanup();
+        if(!response || response.status === "error"){
+          reject(new Error("GViz returned error"));
+          return;
+        }
+        resolve(gvizTableToRows(response.table || {}));
+      }catch(err){
+        cleanup();
+        reject(err);
+      }
+    };
+
+    script.onerror = function(){
+      cleanup();
+      reject(new Error("GViz JSONP script failed"));
+    };
+
+    script.src = SHEET_GVIZ_URL + "?tqx=responseHandler:" + cbName + "&tq=" + encodeURIComponent("select *");
+    document.head.appendChild(script);
+  });
+}
+
+async function fetchFirstWorkingCsv(urls){
+  let lastError = null;
+  for(const url of urls){
+    try{
+      const res = await fetch(url, { cache: "reload", redirect: "follow" });
+      if(!res.ok) throw new Error("HTTP " + res.status + " בכתובת " + url);
+      const text = await res.text();
+      if(!text || !text.trim()) throw new Error("CSV ריק בכתובת " + url);
+      if(text.trim().startsWith("<")) throw new Error("התקבל HTML במקום CSV בכתובת " + url);
+      return { text, url };
+    }catch(err){
+      lastError = err;
+      console.error("CSV load attempt failed:", url, err);
+    }
+  }
+  throw lastError || new Error("לא נמצאה כתובת CSV תקינה");
+}
+
+
+
+
+
+async function loadSheetData(){
+  const status = $("loadStatus");
+  if(status){
+    status.className = "loading-note";
+    status.style.display = "block";
+    status.textContent = "טוען נתונים מהגיליון...";
+  }
+
+  try{
+    let rows = [];
+    let loadedFrom = "";
+
+    try{
+      const result = await fetchFirstWorkingCsv(SHEET_CSV_URLS);
+      rows = parseCSV(result.text);
+      loadedFrom = "CSV";
+    }catch(csvErr){
+      console.warn("CSV fetch failed, trying GViz JSONP:", csvErr);
+      if(status) status.textContent = "CSV נחסם, מנסה טעינה חלופית מהשיטס...";
+      rows = await loadGvizJsonp();
+      loadedFrom = "JSONP";
+    }
+
+    if(!rows || !rows.length){
+      throw new Error("התקבל קובץ ריק מהשיטס");
+    }
+
+    const normalized = normalizeSheetRows(rows);
+
+    if(!normalized || !normalized.length){
+      console.error("Rows received but not normalized:", rows.slice(0,10));
+      throw new Error("השיטס נטען, אבל מבנה העמודות לא זוהה");
+    }
+
+    DATA = normalized;
+    currentToday = DATA.find(x=>x.iso===todayIsoReal) || DATA[0];
+
+    try{
+      setupActions();
+      setupPrintSelects();
+      setupCalendarControls(true);
+      refresh();
+    }catch(renderErr){
+      console.error("Display/render error after sheet load:", renderErr);
+      if(status){
+        status.textContent = "הנתונים נטענו, אבל הייתה שגיאת תצוגה באתר: " + (renderErr && renderErr.message ? renderErr.message : "שגיאה לא ידועה");
+        status.className = "error-note";
+        status.style.display = "block";
+      }
+      return;
+    }
+
+    try{
+      await loadMessagesData();
+    }catch(err){
+      console.error("Messages load error:", err);
+    }
+
+    if(status){
+      status.className = "loading-note";
+      status.textContent = "הנתונים נטענו מהשיטס";
+      setTimeout(()=>{ status.style.display="none"; }, 1000);
+    }
+    console.log("Main sheet loaded from:", loadedFrom, "Rows:", DATA.length);
+  }catch(err){
+    console.error("Sheet load error:", err);
+    DATA = [];
+    currentToday = null;
+    try{ refresh(); }catch(e){ console.error("Refresh after failure error:", e); }
+    if(status){
+      status.textContent = "לא נטענו נתונים מהשיטס: " + (err && err.message ? err.message : "שגיאה לא ידועה");
+      status.className = "error-note";
+      status.style.display = "block";
+    }
+  }
+}
+
+function greeting(){
+  const h = new Date().getHours();
+  if(h>=5 && h<12) return "בוקר טוב";
+  if(h>=12 && h<17) return "צהריים טובים";
+  if(h>=17 && h<22) return "ערב טוב";
+  return "לילה טוב";
+}
+function updateGreeting(){
+  const name=getName();
+  $("introGreeting").textContent = `${greeting()}, ${name}`;
+  $("topGreeting").textContent = `${greeting()}, ${name}`;
+}
+function updateClock(){
+  const now = new Date();
+  const date = now.toLocaleDateString("he-IL", {weekday:"long", year:"numeric", month:"long", day:"numeric"});
+  const time = now.toLocaleTimeString("he-IL", {hour:"2-digit", minute:"2-digit", second:"2-digit"});
+  $("dateTime").innerHTML = `<b>${time}</b><small>${date}</small>`;
+}
+setInterval(updateClock,1000);
+function displayDate(item){return `${item.hdate} · ${new Date(item.iso).toLocaleDateString("he-IL")}`}
+function dayText(item){return `${item.day} · ${displayDate(item)}`}
+function hebrewMonth(hdate){
+  const s = String(hdate || "");
+  const months = ["ניסן","אייר","סיוון","סיון","תמוז","אב","אלול","תשרי","חשון","מרחשון","כסלו","טבת","שבט","אדר"];
+  for(const m of months){
+    if(s.includes(m)) return m === "סיון" ? "סיוון" : m;
+  }
+  return "ללא חודש";
+}
+function cleanWeekName(day){return String(day).replace(/^שבת\s*[–-]?\s*/,'').trim()}
+
+function showPage(id){
+  const page = $(id);
+  if(!page){
+    console.error("Page not found:", id);
+    showToast("הדף לא נמצא");
+    return;
+  }
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active", t.dataset.page===id));
+  page.classList.add("active");
+  try{ window.scrollTo({top:0,behavior:"smooth"}); }catch(e){ window.scrollTo(0,0); }
+  if(id==="calendarPage") renderCalendar();
+}
+
+document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click",()=>showPage(t.dataset.page)));
+
+
+function renderToday(){
+  if(!DATA.length || !currentToday) return;
+  const item=currentToday;
+  $("homeKicker").textContent = dayText(item);
+  $("homeTitle").textContent = `${greeting()}, ${getName()}`;
+  $("homeLearning").textContent = `היום לומדים: ${item.chapters}`;
+  $("homeMeta").textContent = `יום ${item.idx} מתוך ${DATA.length}`;
+  setDoneButtonText($("markTodayBtn"), item.idx);
+  if($("homeMiniToday")) $("homeMiniToday").textContent = `${dayText(item)} · ${item.chapters}`;
+  const done = getDone();
+  const total = DATA.length || 0;
+  const count = Object.keys(done).filter(k=>DATA.some(x=>String(x.idx)===String(k))).length;
+  if($("homeMiniProgress")) $("homeMiniProgress").textContent = total ? `${count} מתוך ${total} ימים סומנו` : "עדיין אין נתונים.";
+}
+
+function renderTodayMobilePolished(){
+  if(!DATA.length || !currentToday) return;
+  const item = currentToday;
+  $("homeKicker").textContent = dayText(item);
+  $("homeTitle").textContent = `${greeting()}, ${getName()}`;
+  $("homeLearning").innerHTML = `<span>היום לומדים</span><strong>${escapeHtml(item.chapters)}</strong>`;
+  $("homeMeta").textContent = "";
+  setDoneButtonText($("markTodayBtn"), item.idx);
+}
+
+function makeCard(item){
+  const done = !!getDone()[item.idx];
+  const isToday = currentToday && item.idx===currentToday.idx;
+  return `<article class="card ${done?'done':''} ${isToday?'today':''}" data-day-idx="${item.idx}">
+    <h4>${isToday?'היום · ':''}${escapeHtml(item.day)}</h4>
+    <div class="mini">${escapeHtml(displayDate(item))}</div>
+    <p style="margin-top:10px">${escapeHtml(item.chapters)}</p>
+    <div class="card-buttons">
+      <button class="btn small primary" type="button" onclick="openDay(${item.idx})">פתח את היום</button>
+      <button class="btn small" type="button" onclick="toggleDone(${item.idx})">${done?'בטל סימון':'סמן כנלמד'}</button>
+    </div>
+  </article>`;
+}
+
+
+function weekdayIndex(item){
+  const s = String(item.day || "");
+  if(s.includes("ראשון")) return 0;
+  if(s.includes("שני")) return 1;
+  if(s.includes("שלישי")) return 2;
+  if(s.includes("רביעי")) return 3;
+  if(s.includes("חמישי")) return 4;
+  if(s.includes("שישי")) return 5;
+  if(s.includes("שבת")) return 6;
+  return new Date(item.iso).getDay();
+}
+function buildCalendarWeeks(items){
+  const weeks = [];
+  let current = new Array(7).fill(null);
+  items.forEach(item=>{
+    const idx = weekdayIndex(item);
+    if(idx === 0 && current.some(Boolean)){
+      weeks.push(current);
+      current = new Array(7).fill(null);
+    }
+    if(current[idx]){
+      weeks.push(current);
+      current = new Array(7).fill(null);
+    }
+    current[idx] = item;
+    if(idx === 6){
+      weeks.push(current);
+      current = new Array(7).fill(null);
+    }
+  });
+  if(current.some(Boolean)) weeks.push(current);
+  return weeks;
+}
+
+
+function renderCalendar(){
+  const cal = $("calendar");
+  if(!cal) return;
+  if(!DATA.length){
+    cal.innerHTML = '<p class="muted">טוען נתונים...</p>';
+    return;
+  }
+
+  setupCalendarControls(false);
+
+  const q = ($("search")?.value || "").trim();
+  const monthValue = $("calendarMonthSelect")?.value || "all";
+  const onlyUndone = !!$("onlyUndoneFilter")?.checked;
+  const done = getDone();
+
+  let rows = DATA.filter(x => {
+    const textOk = !q || [x.idx,x.iso,x.hdate,x.day,x.chapters].join(" ").includes(q);
+    const monthOk = monthValue === "all" || hebrewMonth(x.hdate) === monthValue;
+    const undoneOk = !onlyUndone || !done[x.idx];
+    return textOk && monthOk && undoneOk;
+  });
+
+  const groups = {};
+  rows.forEach(x=>{
+    const key = hebrewMonth(x.hdate) || "ללא חודש";
+    (groups[key] ||= []).push(x);
+  });
+
+  const weekNames = ["ראשון","שני","שלישי","רביעי","חמישי","שישי","שבת"];
+
+  function cell(x){
+    if(!x) return `<td><div class="calendar-cell empty"></div></td>`;
+    const isToday = currentToday && x.idx===currentToday.idx;
+    const isDone = !!done[x.idx];
+    return `<td>
+      <div class="calendar-cell ${isToday?'today':''} ${isDone?'done':''}" data-day-idx="${x.idx}">
+        <h4>${escapeHtml(x.day || "יום")}</h4>
+        <small>${escapeHtml(x.hdate)}</small>
+        <p>${escapeHtml(x.chapters)}</p>
+        <div class="card-buttons">
+          <button class="btn small primary" type="button" onclick="openDay(${x.idx})">פתח</button>
+          <button class="btn small" type="button" onclick="toggleDone(${x.idx})">${isDone?'בטל סימון':'סמן כנלמד'}</button>
+        </div>
+      </div>
+    </td>`;
+  }
+
+  cal.innerHTML = Object.entries(groups).map(([month,items])=>{
+    const weeks = buildCalendarWeeks(items);
+    return `<section class="calendar-month" data-month="${escapeHtml(month)}">
+      <h3 class="calendar-month-title">${escapeHtml(month)}</h3>
+      <div class="calendar-scroll">
+        <table class="calendar-table">
+          <thead><tr>${weekNames.map(d=>`<th>${d}</th>`).join("")}</tr></thead>
+          <tbody>
+            ${weeks.map(w=>`<tr>${w.map(cell).join("")}</tr>`).join("")}
+          </tbody>
+        </table>
+      </div>
+    </section>`;
+  }).join("") || `<p class="muted">לא נמצאו תוצאות.</p>`;
+}
+
+
+function setupCalendarControls(force){
+  const sel = $("calendarMonthSelect");
+  if(!sel || !DATA.length) return;
+
+  const current = sel.value || "all";
+  const months = [];
+  DATA.forEach(x=>{
+    const m = hebrewMonth(x.hdate) || "ללא חודש";
+    if(!months.includes(m)) months.push(m);
+  });
+
+  const options = `<option value="all">כל החודשים</option>` + months.map(m=>`<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join("");
+  if(force || sel.dataset.loadedMonths !== months.join("|")){
+    sel.innerHTML = options;
+    sel.dataset.loadedMonths = months.join("|");
+
+    const todayMonth = currentToday ? (hebrewMonth(currentToday.hdate) || "ללא חודש") : "";
+    if(!localStorage.getItem(STORAGE_PREFIX+"calendarMonthTouched") && todayMonth){
+      sel.value = todayMonth;
+    }else{
+      sel.value = months.includes(current) || current==="all" ? current : "all";
+    }
+  }
+
+  if(!sel.dataset.bound){
+    sel.dataset.bound = "1";
+    sel.addEventListener("change", ()=>localStorage.setItem(STORAGE_PREFIX+"calendarMonthTouched","1"));
+  }
+}
+
+function clearCalendarFilters(){
+  if($("search")) $("search").value = "";
+  if($("calendarMonthSelect")) $("calendarMonthSelect").value = "all";
+  if($("onlyUndoneFilter")) $("onlyUndoneFilter").checked = false;
+  localStorage.setItem(STORAGE_PREFIX+"calendarMonthTouched","1");
+  renderCalendar();
+}
+
+function clearCalendarSearch(){
+  const search = $("search");
+  if(search) search.value = "";
+  renderCalendar();
+  if(search) search.focus();
+}
+
+function mobileCalendarMonthStep(delta){
+  const sel = $("calendarMonthSelect");
+  if(!sel || !sel.options.length) return;
+  setupCalendarControls(true);
+  const options = Array.from(sel.options).map(o=>o.value);
+  const months = options.filter(v=>v && v !== "all");
+  if(!months.length) return;
+  let current = sel.value;
+  if(!current || current === "all"){
+    current = currentToday ? (hebrewMonth(currentToday.hdate) || months[0]) : months[0];
+  }
+  let idx = months.indexOf(current);
+  if(idx < 0) idx = 0;
+  idx = Math.max(0, Math.min(months.length - 1, idx + delta));
+  sel.value = months[idx];
+  localStorage.setItem(STORAGE_PREFIX+"calendarMonthTouched","1");
+  renderCalendar();
+}
+
+function openTodayInCalendar(){
+  if(!DATA.length){
+    showToast("הנתונים עדיין נטענים מהשיטס");
+    return;
+  }
+  const item = currentToday || DATA.find(x=>x.iso===todayIsoReal) || DATA[0];
+  if(!item){
+    showToast("לא נמצא היום הנוכחי");
+    return;
+  }
+  showPage("calendarPage");
+  const month = hebrewMonth(item.hdate) || "ללא חודש";
+  if($("calendarMonthSelect")){
+    setupCalendarControls(true);
+    $("calendarMonthSelect").value = month;
+    localStorage.setItem(STORAGE_PREFIX+"calendarMonthTouched","1");
+  }
+  if($("onlyUndoneFilter")) $("onlyUndoneFilter").checked = false;
+  renderCalendar();
+  setTimeout(()=>{
+    const cell = document.querySelector(`[data-day-idx="${item.idx}"]`);
+    if(cell){
+      cell.scrollIntoView({behavior:"smooth", block:"center", inline:"center"});
+      cell.classList.add("focus-today");
+      setTimeout(()=>cell.classList.remove("focus-today"),1600);
+    }
+  },120);
+}
+
+function toggleMapPanel(){
+  const side = document.querySelector(".home-side");
+  if(!side) return;
+  side.classList.toggle("map-collapsed");
+}
+
+
+
+function setPrintModeTile(mode){
+  const select = $("printMode");
+  if(select){
+    select.value = mode;
+  }
+  document.querySelectorAll(".print-mode-tile").forEach(btn=>{
+    btn.classList.toggle("active", btn.dataset.printMode === mode);
+  });
+  syncPrintMode();
+}
+
+function syncPrintModeTiles(){
+  const select = $("printMode");
+  const mode = select ? select.value : "range";
+  document.querySelectorAll(".print-mode-tile").forEach(btn=>{
+    btn.classList.toggle("active", btn.dataset.printMode === mode);
+  });
+}
+
+function syncPrintMode(){
+  setTimeout(syncPrintModeTiles,0);
+  const mode = $("printMode")?.value || "range";
+  const startRow = $("printStartRow");
+  const endRow = $("printEndRow");
+  const monthRow = $("printMonthRow");
+  const tractateRow = $("printTractateRow");
+
+  if(startRow) startRow.style.display = ["range","day","week"].includes(mode) ? "" : "none";
+  if(endRow) endRow.style.display = mode === "range" ? "" : "none";
+  if(monthRow) monthRow.style.display = mode === "month" ? "" : "none";
+  if(tractateRow) tractateRow.style.display = mode === "tractate" ? "" : "none";
+}
+
+
+
+function getPrintRowsByMode(){
+  const startEl = $("printStart"), endEl = $("printEnd");
+  if(!DATA.length) return [];
+  const mode = $("printMode")?.value || "range";
+  const startIdx = Number(startEl?.value || (currentToday?.idx || DATA[0].idx));
+  const startItem = DATA.find(x=>Number(x.idx)===startIdx) || currentToday || DATA[0];
+
+  if(mode === "day") return [startItem];
+
+  if(mode === "week"){
+    const start = Math.max(1, startItem.idx - printDayIndex(startItem));
+    const end = start + 6;
+    return DATA.filter(x=>x.idx>=start && x.idx<=end);
+  }
+
+  if(mode === "month"){
+    const selected = $("printMonthSelect")?.value || (hebrewMonth(startItem.hdate) || "ללא חודש");
+    return DATA.filter(x=>(hebrewMonth(x.hdate) || "ללא חודש") === selected);
+  }
+
+  if(mode === "tractate"){
+    const selected = $("printTractateSelect")?.value || "";
+    if(!selected) return [];
+    return DATA.filter(x=>extractTractatesFromChapters(x.chapters).includes(selected));
+  }
+
+  let a = Number(startEl?.value || startItem.idx), b = Number(endEl?.value || a);
+  if(a > b){ const t=a; a=b; b=t; }
+  return DATA.filter(x=>x.idx>=a && x.idx<=b);
+}
+
+
+
+function confirmResetProgress(){
+  if(!confirm("אתה בטוח? פעולה זו תמחק את כל הסימונים שנשמרו במכשיר הזה.")) return;
+  localStorage.removeItem(STORAGE_PREFIX + "done");
+  localStorage.removeItem(STORAGE_PREFIX + "progress");
+  refresh();
+  showToast("הסימונים אופסו");
+}
+
+function exportProgress(){
+  const payload = {
+    version:1,
+    createdAt:new Date().toISOString(),
+    done:getDone(),
+    name:getName()
+  };
+  const code = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+  $("modalTitle").textContent = "ייצוא מצב סימונים";
+  $("modalBody").innerHTML = `
+    <p class="muted">העתק את הקוד ושמור אותו. אפשר לייבא אותו במכשיר אחר.</p>
+    <textarea class="backup-box" readonly onclick="this.select()">${code}</textarea>
+  `;
+  $("modalDoneBtn").textContent = "סגור";
+  $("modalDoneBtn").onclick = closeModal;
+  $("modal").classList.add("open");
+}
+
+function importProgress(){
+  const box = $("progressImportBox");
+  const raw = (box?.value || "").trim();
+  if(!raw){
+    showToast("לא הוזן קוד גיבוי");
+    return;
+  }
+  try{
+    const payload = JSON.parse(decodeURIComponent(escape(atob(raw))));
+    if(!payload || !payload.done || typeof payload.done !== "object" || Array.isArray(payload.done)) throw new Error("bad payload");
+    const validIds = new Set(DATA.map(x=>String(x.idx)));
+    const cleanDone = {};
+    Object.keys(payload.done).forEach(id=>{
+      if(validIds.has(String(id)) && payload.done[id] === true) cleanDone[id] = true;
+    });
+    setDone(cleanDone);
+    if(typeof payload.name === "string" && payload.name.trim()){
+      localStorage.setItem(STORAGE_PREFIX+"name", payload.name.trim().slice(0,60));
+    }
+    refresh();
+    showToast("הסימונים יובאו בהצלחה");
+  }catch(e){
+    showToast("קוד הגיבוי לא תקין");
+  }
+}
+
+function showPwaHelp(){
+  $("modalTitle").textContent = "התקנה למסך הבית";
+  $("modal").classList.remove("reader-modal");
+  document.body.classList.remove("mobile-reader-open");
+  const canInstall = !!deferredInstallPrompt;
+  $("modalBody").innerHTML = `
+    <div class="mobile-pwa-install-card">
+      <b>התקנה כאפליקציה</b>
+      <p class="muted">האייקונים וה־manifest כבר מוגדרים. כשהדפדפן מאפשר התקנה, אפשר לפתוח את האתר ממסך הבית בצורה נקייה יותר.</p>
+      ${canInstall ? `<button class="btn primary" type="button" onclick="installPwaNow()">התקן עכשיו</button>` : ""}
+      <p class="muted">אם לא מופיע כפתור התקנה: פתח את תפריט הדפדפן ובחר “הוסף למסך הבית”. במחשב, בדפדפן נתמך יופיע בדרך כלל סמל התקנה ליד שורת הכתובת.</p>
+    </div>
+  `;
+  $("modalDoneBtn").textContent = "סגור";
+  $("modalDoneBtn").onclick = closeModal;
+  $("modal").classList.add("open");
+}
+
+async function installPwaNow(){
+  if(!deferredInstallPrompt){
+    showToast("פתח את תפריט הדפדפן ובחר הוסף למסך הבית");
+    return;
+  }
+  try{
+    deferredInstallPrompt.prompt();
+    await deferredInstallPrompt.userChoice;
+    deferredInstallPrompt = null;
+    closeModal();
+  }catch(e){
+    showToast("ההתקנה לא נפתחה בדפדפן הזה");
+  }
+}
+
+
+function clearSearch(){
+  if($("search")) $("search").value="";
+  renderCalendar();
+}
+
+
+function updateProgress(){
+  const done = getDone();
+  const total = DATA.length || 0;
+  const count = Object.keys(done).filter(k=>DATA.some(x=>String(x.idx)===String(k))).length;
+  if($("doneCount")) $("doneCount").textContent = count;
+  if($("leftCount")) $("leftCount").textContent = Math.max(0,total-count);
+  if($("percentCount")) $("percentCount").textContent = total ? Math.round(count/total*100)+"%" : "0%";
+  if($("progressFill")){
+    const progressPct = total ? (count/total*100) : 0;
+    $("progressFill").style.width = progressPct + "%";
+    $("progressFill").classList.toggle("has-progress", progressPct > 0);
+    $("progressFill").setAttribute("aria-valuenow", String(Math.round(progressPct)));
+  }
+
+  const map = $("yearMap");
+  if(map){
+    const weekdays = ["א","ב","ג","ד","ה","ו","שבת"].map(d=>`<span class="map-weekday">${d}</span>`).join("");
+    const blanks = DATA.length ? new Array(weekdayIndex(DATA[0])).fill('<span class="dot dot-empty" aria-hidden="true"></span>').join("") : "";
+    map.innerHTML = weekdays + blanks + DATA.map(x=>{
+      const isDone = !!done[x.idx];
+      const cls = ["dot", isDone ? "done" : "", x.iso===todayIsoReal ? "today" : ""].filter(Boolean).join(" ");
+      const tip = `${dayText(x)}\n${x.chapters}`;
+      const action = isDone ? "בטל סימון" : "סמן כנלמד";
+      const shortDate = String(x.hdate || "").trim().split(/\s+/)[0] || x.idx;
+      return `<button type="button" class="${cls}" data-tip="${escapeHtml(tip)}" data-date-short="${escapeHtml(shortDate)}" onclick="toggleMapDone(${x.idx})" title="${action}" aria-label="${action}: ${escapeHtml(dayText(x))}"></button>`;
+    }).join("");
+  }
+}
+
+
+
+function toggleMapDone(idx){
+  const done = getDone();
+  if(done[idx]){
+    delete done[idx];
+    setDone(done);
+    refresh();
+    showToast("הסימון בוטל");
+  }else{
+    done[idx] = true;
+    setDone(done);
+    refresh();
+    showToast("סומן כנלמד");
+  }
+}
+
+function toggleDone(idx){
+  const done=getDone();
+  if(done[idx]){
+    delete done[idx];
+    setDone(done);
+    refresh();
+    showToast("הסימון בוטל");
+  }else{
+    done[idx]=true;
+    setDone(done);
+    refresh();
+    showToast("סומן כנלמד");
+  }
+}
+
+
+
+function markToday(){
+  if(!DATA.length){
+    showToast("הנתונים עדיין נטענים מהשיטס");
+    return;
+  }
+  const item = currentToday || DATA.find(x=>x.iso===todayIsoReal) || DATA[0];
+  if(!item){
+    showToast("לא נמצא היום הנוכחי");
+    return;
+  }
+  const done=getDone();
+  if(done[item.idx]){
+    delete done[item.idx];
+    setDone(done);
+    refresh();
+    showToast("הסימון בוטל");
+  }else{
+    done[item.idx]=true;
+    setDone(done);
+    refresh();
+    showToast("סומן כנלמד");
+  }
+  setDoneButtonText($("markTodayBtn"), item.idx);
+}
+
+
+function openToday(){
+  if(!DATA.length){
+    showToast("הנתונים עדיין נטענים מהשיטס");
+    return;
+  }
+  const item = currentToday || DATA[0];
+  if(!item){
+    showToast("הנתונים עדיין נטענים");
+    return;
+  }
+  openDay(item.idx);
+}
+
+
+
+
+function normalizeHebText(s){
+  return String(s || "")
+    .replace(/[״"]/g,'"')
+    .replace(/[׳']/g,"'")
+    .replace(/[־–—]/g,"-")
+    .replace(/\s+/g," ")
+    .trim();
+}
+
+function gematriaSmallHeb(s){
+  const map = {א:1,ב:2,ג:3,ד:4,ה:5,ו:6,ז:7,ח:8,ט:9,י:10,כ:20,ך:20,ל:30,מ:40,ם:40,נ:50,ן:50,ס:60,ע:70,פ:80,ף:80,צ:90,ץ:90,ק:100,ר:200,ש:300,ת:400};
+  return String(s || "").replace(/[^\u0590-\u05FF]/g,"").split("").reduce((sum,ch)=>sum+(map[ch]||0),0);
+}
+
+function hebNumToNumber(s){
+  s = String(s || "").trim().replace(/[״"׳']/g,"");
+  if(/^\d+$/.test(s)) return Number(s);
+  return gematriaSmallHeb(s);
+}
+
+function numberToHebSmall(n){
+  const map = ["","א","ב","ג","ד","ה","ו","ז","ח","ט","י","יא","יב","יג","יד","טו","טז","יז","יח","יט","כ","כא","כב","כג","כד","כה","כו","כז","כח","כט","ל"];
+  return map[n] || String(n);
+}
+
+function parseMishnaFileText(raw){
+  const lines = String(raw || "").replace(/\r/g,"").split("\n");
+  let tractate = "";
+  let currentChapter = "";
+  let current = null;
+  const items = [];
+
+  function pushCurrent(){
+    if(current){
+      current.text = current.text.join("\n").trim();
+      items.push(current);
+    }
+  }
+
+  for(const line of lines){
+    const trimmed = line.trim();
+    if(!trimmed || trimmed.startsWith("//")) continue;
+
+    const tractateMatch = trimmed.match(/^\$\s*משנה\s*-\s*(.+)$/);
+    if(tractateMatch){
+      tractate = tractateMatch[1].trim();
+      continue;
+    }
+
+    const chapterMatch = trimmed.match(/^\^\s*פרק\s+(.+)$/);
+    if(chapterMatch){
+      currentChapter = chapterMatch[1].trim();
+      continue;
+    }
+
+    const mishnahMatch = trimmed.match(/^~\s*פרק\s+(.+?)\s*-\s*משנה\s+(.+)$/);
+    if(mishnahMatch){
+      pushCurrent();
+      current = {
+        tractate,
+        chapterHeb: mishnahMatch[1].trim(),
+        chapterNum: hebNumToNumber(mishnahMatch[1]),
+        mishnahHeb: mishnahMatch[2].trim(),
+        mishnahNum: hebNumToNumber(mishnahMatch[2]),
+        title: `פרק ${mishnahMatch[1].trim()} · משנה ${mishnahMatch[2].trim()}`,
+        text: []
+      };
+      continue;
+    }
+
+    if(current){
+      current.text.push(trimmed);
+    }
+  }
+  pushCurrent();
+
+  const byChapter = {};
+  items.forEach(item=>{
+    (byChapter[item.chapterNum] ||= []).push(item);
+  });
+
+  return {tractate, items, byChapter};
+}
+
+function scoreDecodedMishnaText(s){
+  const text = String(s || "");
+  let score = 0;
+  score += (text.match(/משנה/g) || []).length * 3;
+  score += (text.match(/פרק/g) || []).length * 3;
+  score += (text.match(/^\s*~/gm) || []).length;
+  score += (text.match(/^\s*\$/gm) || []).length;
+  score -= (text.match(/ /g) || []).length * 5;
+  return score;
+}
+
+async function loadMishnaTextForTractate(tractate){
+  const file = MISHNA_FILES[tractate];
+  if(!file) return null;
+  if(MISHNA_CACHE[tractate]) return MISHNA_CACHE[tractate];
+
+  const res = await fetch(file, {cache:"no-store"});
+  if(!res.ok) throw new Error("לא ניתן לטעון את קובץ " + file);
+
+  const buffer = await res.arrayBuffer();
+  let utf8 = "";
+  let win1255 = "";
+
+  try{ utf8 = new TextDecoder("utf-8").decode(buffer); }catch(e){ utf8 = ""; }
+  try{ win1255 = new TextDecoder("windows-1255").decode(buffer); }catch(e){ win1255 = ""; }
+
+  const raw = scoreDecodedMishnaText(win1255) > scoreDecodedMishnaText(utf8) ? win1255 : utf8;
+  const parsed = parseMishnaFileText(raw);
+
+  if(!parsed.items || !parsed.items.length){
+    throw new Error("הקובץ נטען, אבל לא זוהו בו כותרות פרק/משנה. כנראה יש בעיית קידוד או מבנה קובץ.");
+  }
+
+  MISHNA_CACHE[tractate] = parsed;
+  return parsed;
+}
+
+
+function findTractateNamesInText(text){
+  const normalized = normalizeHebText(text);
+  return Object.keys(MISHNA_FILES)
+    .sort((a,b)=>b.length-a.length)
+    .filter(name => normalized.includes(name));
+}
+
+function parseRangesFromText(part){
+  const clean = normalizeHebText(part);
+  const ranges = [];
+  const re = /([א-ת"׳'\d]+)\s*(?:-|עד)\s*([א-ת"׳'\d]+)|([א-ת"׳'\d]+)/g;
+  let m;
+  while((m = re.exec(clean))){
+    if(m[1] && m[2]){
+      const a = hebNumToNumber(m[1]);
+      const b = hebNumToNumber(m[2]);
+      if(a && b){
+        const min = Math.min(a,b), max = Math.max(a,b);
+        for(let i=min;i<=max;i++) ranges.push(i);
+      }
+    }else if(m[3]){
+      const n = hebNumToNumber(m[3]);
+      if(n) ranges.push(n);
+    }
+  }
+  return [...new Set(ranges)];
+}
+
+
+
+function splitDailyLearningParts(text){
+  return normalizeHebText(text)
+    .split(/\s*\|\s*|\s*;\s*|\s+\+\s+/)
+    .map(x=>x.trim())
+    .filter(Boolean);
+}
+
+
+
+
+
+function parseDailyLearningReferences(chaptersText){
+  const fullText = normalizeHebText(chaptersText);
+  const parts = splitDailyLearningParts(fullText);
+  const refs = [];
+  const allNames = Object.keys(MISHNA_FILES).sort((a,b)=>b.length-a.length);
+
+  for(const rawPart of parts){
+    const part = String(rawPart || "").trim();
+    if(!part) continue;
+
+    const tractate = allNames.find(name => part.includes(name));
+    if(!tractate) continue;
+
+    const afterName = part.slice(part.indexOf(tractate) + tractate.length).trim();
+
+    // מבנה גיליון 1 בפועל: ברכות א,א / ברכות א,ב / פאה ו,יא
+    let m = afterName.match(/^([א-ת"׳'\d]+)\s*,\s*([א-ת"׳'\d]+)\s*$/);
+    if(m){
+      const chapterNum = hebNumToNumber(m[1]);
+      const mishnahNum = hebNumToNumber(m[2]);
+      if(chapterNum && mishnahNum){
+        refs.push({
+          tractate: tractate,
+          chapters: [chapterNum],
+          mishnayot: [mishnahNum],
+          original: part
+        });
+      }
+      continue;
+    }
+
+    // טיפול בטעות כמו בשורה הראשונה בגיליון: ברכות א,  => נחשב משנה א
+    m = afterName.match(/^([א-ת"׳'\d]+)\s*,\s*$/);
+    if(m){
+      const chapterNum = hebNumToNumber(m[1]);
+      if(chapterNum){
+        refs.push({
+          tractate: tractate,
+          chapters: [chapterNum],
+          mishnayot: [1],
+          original: part
+        });
+      }
+      continue;
+    }
+
+    // מבנים מילוליים לגיבוי: ברכות פרק א משנה א-ג
+    m = afterName.match(/פרק\s+([א-ת"׳'\d]+).*?(?:משנה|משניות)\s+(.+)$/);
+    if(m){
+      const chapterNum = hebNumToNumber(m[1]);
+      const mishnayot = parseRangesFromText(m[2]);
+      if(chapterNum && mishnayot.length){
+        refs.push({
+          tractate: tractate,
+          chapters: [chapterNum],
+          mishnayot: mishnayot,
+          original: part
+        });
+      }
+      continue;
+    }
+
+    // מבנה קצר לגיבוי: ברכות א א-ג
+    m = afterName.match(/^([א-ת"׳'\d]+)\s+(?:משנה|משניות)?\s*([א-ת"׳'\d]+(?:\s*(?:-|עד)\s*[א-ת"׳'\d]+)?)(?:\s|$)/);
+    if(m){
+      const chapterNum = hebNumToNumber(m[1]);
+      const mishnayot = parseRangesFromText(m[2]);
+      if(chapterNum && mishnayot.length){
+        refs.push({
+          tractate: tractate,
+          chapters: [chapterNum],
+          mishnayot: mishnayot,
+          original: part
+        });
+      }
+    }
+  }
+
+  const merged = [];
+  for(const ref of refs){
+    const existing = merged.find(x =>
+      x.tractate === ref.tractate &&
+      x.chapters.join(",") === ref.chapters.join(",") &&
+      x.mishnayot.length &&
+      ref.mishnayot.length
+    );
+
+    if(existing){
+      ref.mishnayot.forEach(n=>{
+        if(!existing.mishnayot.includes(n)) existing.mishnayot.push(n);
+      });
+      existing.original += " | " + ref.original;
+    }else{
+      merged.push({
+        tractate: ref.tractate,
+        chapters: ref.chapters.slice(),
+        mishnayot: ref.mishnayot.slice(),
+        original: ref.original
+      });
+    }
+  }
+
+  merged.forEach(ref=>ref.mishnayot.sort((a,b)=>a-b));
+  return merged;
+}
+
+
+
+
+function stripMishnaNotes(text){
+  return String(text || "")
+    .replace(/\{[^}]*\}/g,"")
+    .replace(/<[^>]+>/g,"")
+    .replace(/\s+:/g,":")
+    .replace(/\s+/g," ")
+    .trim();
+}
+
+async function buildReaderHtml(item){
+  const refs = parseDailyLearningReferences(item.chapters);
+  if(!refs.length){
+    return `
+      <div class="reader-empty">
+        <h3>לא זוהה קישור לטקסט מלא</h3>
+        <p>האתר לא הצליח לזהות מתוך השורה הזו מבנה כמו: ברכות א,א | ברכות א,ב | ברכות א,ג <b>${escapeHtml(item.chapters)}</b></p>
+      </div>`;
+  }
+
+  const sections = [];
+  for(const ref of refs){
+    const parsed = await loadMishnaTextForTractate(ref.tractate);
+    if(!parsed){
+      sections.push(`<section class="reader-section"><h3>${escapeHtml(ref.tractate)}</h3><p class="muted">עדיין לא הועלה קובץ למסכת זו.</p></section>`);
+      continue;
+    }
+
+    const chapterHtml = ref.chapters.map(chNum=>{
+      let mishnayot = parsed.byChapter[chNum] || [];
+
+      if(ref.mishnayot && ref.mishnayot.length){
+        mishnayot = mishnayot.filter(m=>ref.mishnayot.includes(Number(m.mishnahNum)));
+      }
+
+      if(!mishnayot.length){
+        return `<div class="reader-chapter">
+          <h4>פרק ${escapeHtml(numberToHebSmall(chNum))}</h4>
+          <p class="muted">המשניות המבוקשות לא נמצאו בקובץ. ודא שבשיטס כתוב לדוגמה: ${escapeHtml(ref.tractate)} ${escapeHtml(numberToHebSmall(chNum))},א | ${escapeHtml(ref.tractate)} ${escapeHtml(numberToHebSmall(chNum))},ב</p>
+        </div>`;
+      }
+
+      return `<div class="reader-chapter">
+        <h4>פרק ${escapeHtml(mishnayot[0].chapterHeb || numberToHebSmall(chNum))}</h4>
+        ${mishnayot.map(m=>`
+          <article class="reader-mishna">
+            <h5>${escapeHtml(m.title)}</h5>
+            <p>${escapeHtml(stripMishnaNotes(m.text))}</p>
+          </article>
+        `).join("")}
+      </div>`;
+    }).join("");
+
+    sections.push(`<section class="reader-section"><h3>${escapeHtml(ref.tractate)}</h3>${chapterHtml}</section>`);
+  }
+
+  return `<div class="reader-wrap">${sections.join("")}</div>`;
+}
+
+function isMobileView(){
+  return window.matchMedia && window.matchMedia("(max-width: 680px)").matches;
+}
+
+async function showReaderForDay(item){
+  $("modalTitle").textContent = `קריאה נוחה · יום ${item.idx}`;
+  $("modal").classList.toggle("reader-modal", isMobileView());
+  document.body.classList.toggle("mobile-reader-open", isMobileView());
+  $("modalBody").innerHTML = `
+    <div class="reader-loading">
+      <div class="reader-spinner"></div>
+      <p>טוען את הטקסט המלא...</p>
+    </div>
+  `;
+  $("modalDoneBtn").textContent = getDone()[item.idx] ? "בטל סימון" : "סמן כנלמד";
+  $("modalDoneBtn").onclick = () => {
+    toggleDone(item.idx);
+    closeModal();
+  };
+  $("modal").classList.add("open");
+
+  try{
+    const readerHtml = await buildReaderHtml(item);
+    $("modalBody").innerHTML = `
+      <div class="reader-top">
+        <div>
+          <p class="reader-date">${escapeHtml(dayText(item))}</p>
+          <h3>${escapeHtml(item.chapters)}</h3>
+        </div>
+        <button class="btn small" onclick="increaseReaderFont()">הגדל כתב</button>
+      </div>
+      ${readerHtml}
+    `;
+  }catch(err){
+    console.error("Reader error:", err);
+    $("modalBody").innerHTML = `
+      <div class="reader-empty">
+        <h3>הטקסט לא נטען</h3>
+        <p class="muted">${escapeHtml(err && err.message ? err.message : "שגיאה לא ידועה")}</p>
+        <p class="muted">ודא שקבצי הטקסט נמצאים באותה תיקייה של קובץ האתר, וששם הקובץ זהה בדיוק לשם שמופיע בקוד.</p>
+      </div>
+    `;
+  }
+}
+
+function increaseReaderFont(){
+  const box = document.querySelector(".reader-wrap");
+  if(!box) return;
+  const current = Number(box.dataset.size || 0);
+  const next = (current + 1) % 3;
+  box.dataset.size = String(next);
+}
+
+function openTodayReader(){
+  if(!DATA.length){
+    showToast("הנתונים עדיין נטענים מהשיטס");
+    return;
+  }
+  const item = currentToday || DATA.find(x=>x.iso===todayIsoReal) || DATA[0];
+  if(!item){
+    showToast("לא נמצא היום הנוכחי");
+    return;
+  }
+  showReaderForDay(item);
+}
+
+
+function openDay(idx){
+  const item = DATA.find(x => Number(x.idx) === Number(idx));
+  if(!item){
+    showToast("לא נמצא היום המבוקש");
+    return;
+  }
+  showReaderForDay(item);
+}
+
+
+
+
+function closeModal(){
+  $("modal").classList.remove("open","reader-modal");
+  document.body.classList.remove("mobile-reader-open");
+}
+
+
+
+
+function toggleActionBox(id){
+  const box = $(id);
+  if(!box) return;
+  box.classList.toggle("open");
+}
+
+
+function copySiteLink(){
+  const url = location.href;
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(url).then(()=>showToast("הקישור הועתק"));
+  }else{
+    prompt("העתק את הקישור:", url);
+  }
+}
+
+
+function showShortcutHelp(){
+  $("modalTitle").textContent = "שמירת קיצור דרך";
+  $("modalBody").innerHTML = `
+    <div class="message-modal-text">
+      הפתרון היעיל בלי אזהרת אבטחה הוא ליצור קיצור דרך דרך הדפדפן עצמו:<br><br>
+      <strong>ב־Chrome / Edge:</strong><br>
+      לחץ על שלוש הנקודות למעלה ← שמירה ושיתוף / Apps ← יצירת קיצור דרך.<br><br>
+      אפשר גם לגרור את סמל המנעול/האתר משורת הכתובת אל שולחן העבודה.<br><br>
+      קובץ קיצור דרך שמורד מהאינטרנט כמעט תמיד יקפיץ אזהרה של Windows, ואי אפשר לעקוף את זה בצורה תקינה מתוך אתר.
+    </div>`;
+  $("modalDoneBtn").textContent = "סגור";
+  $("modalDoneBtn").onclick = closeModal;
+  $("modal").classList.add("open");
+}
+function downloadSiteShortcut(){
+  const url = location.href;
+  const content = `[InternetShortcut]\nURL=${url}\n`;
+  const blob = new Blob([content], {type:"application/octet-stream"});
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "לוח שנה למשניות.url";
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(()=>URL.revokeObjectURL(a.href), 1000);
+  showToast("קובץ קיצור דרך ירד. אם Windows מבקש אישור — זה אבטחה של המחשב.");
+}
+function openMessageModal(){
+  const item = ADMIN_MESSAGES && ADMIN_MESSAGES[0];
+  if(!item) return;
+  $("modalTitle").textContent = item.title || "הודעה";
+  $("modalBody").innerHTML = `<div class="message-modal-text">${formatMessageText(item.message)}</div>`;
+  $("modalDoneBtn").onclick = closeModal;
+  $("modalDoneBtn").textContent = "קראתי";
+  $("modal").classList.add("open");
+}
+
+function openPrintPicker(){
+  setupPrintSelects();
+  $("printPicker").classList.add("open");
+}
+function closePrintPicker(){
+  $("printPicker").classList.remove("open");
+}
+
+
+
+function extractTractatesFromChapters(text){
+  const raw = String(text || "");
+  const cleaned = raw.replace(/[״"]/g,"").replace(/[׳']/g,"").replace(/[:;,|]/g," ");
+  const parts = cleaned.split(/\s+/).filter(Boolean);
+  const skip = new Set(["פרק","פרקים","משנה","משניות","עד","ו","-","–"]);
+  const found = [];
+  for(let i=0;i<parts.length;i++){
+    let w = parts[i].trim();
+    if(!w || skip.has(w)) continue;
+    if(/^[אבגדהוזחטיכלמנסעפצקרשת]+$/.test(w) && !["א","ב","ג","ד","ה","ו","ז","ח","ט","י"].includes(w)){
+      if(!found.includes(w)) found.push(w);
+    }
+  }
+  return found;
+}
+
+function allHebrewMonthsInData(){
+  const months = [];
+  DATA.forEach(x=>{
+    const m = hebrewMonth(x.hdate) || "ללא חודש";
+    if(!months.includes(m)) months.push(m);
+  });
+  return months;
+}
+
+function allTractatesInData(){
+  const names = [];
+  DATA.forEach(x=>{
+    extractTractatesFromChapters(x.chapters).forEach(n=>{
+      if(!names.includes(n)) names.push(n);
+    });
+  });
+  return names;
+}
+
+function setupPrintAdvancedSelects(){
+  const monthSel = $("printMonthSelect");
+  const tractateSel = $("printTractateSelect");
+  if(monthSel){
+    const months = allHebrewMonthsInData();
+    monthSel.innerHTML = months.map(m=>`<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join("");
+    const todayMonth = currentToday ? (hebrewMonth(currentToday.hdate) || "") : "";
+    if(todayMonth && months.includes(todayMonth)) monthSel.value = todayMonth;
+  }
+  if(tractateSel){
+    const tractates = allTractatesInData();
+    tractateSel.innerHTML = tractates.map(t=>`<option value="${escapeHtml(t)}">${escapeHtml(t)}</option>`).join("");
+  }
+}
+
+
+function setupPrintSelects(){
+  const start = $("printStart"), end = $("printEnd");
+  if(!start || !end || !DATA.length) return;
+  const options = DATA.map(x=>`<option value="${x.idx}">יום ${x.idx} · ${escapeHtml(x.hdate)}</option>`).join("");
+  const oldStart = start.value;
+  const oldEnd = end.value;
+  start.innerHTML = options;
+  end.innerHTML = options;
+  const today = currentToday || DATA[0];
+  start.value = oldStart || (today ? today.idx : DATA[0].idx);
+  end.value = oldEnd || DATA[DATA.length-1].idx;
+  setupPrintAdvancedSelects();
+  syncPrintMode();
+}
+
+
+
+
+
+
+function printDayIndex(item){
+  const s = String(item.day || "");
+  if(s.includes("ראשון")) return 0;
+  if(s.includes("שני")) return 1;
+  if(s.includes("שלישי")) return 2;
+  if(s.includes("רביעי")) return 3;
+  if(s.includes("חמישי")) return 4;
+  if(s.includes("שישי")) return 5;
+  if(s.includes("שבת")) return 6;
+  const d = new Date(item.iso + "T12:00:00");
+  const n = d.getDay();
+  return Number.isFinite(n) ? n : 0;
+}
+function buildAlignedPrintWeeks(rows){
+  const weeks = [];
+  let current = Array(7).fill(null);
+  rows.forEach((item, idx)=>{
+    const di = printDayIndex(item);
+    if(idx > 0 && di === 0 && current.some(Boolean)){
+      weeks.push(current);
+      current = Array(7).fill(null);
+    }
+    if(current[di] && current.some(Boolean)){
+      weeks.push(current);
+      current = Array(7).fill(null);
+    }
+    current[di] = item;
+    if(di === 6){
+      weeks.push(current);
+      current = Array(7).fill(null);
+    }
+  });
+  if(current.some(Boolean)) weeks.push(current);
+  return weeks;
+}
+
+
+
+
+window.addEventListener("afterprint",()=>{document.body.classList.remove("print-mode");$("printArea").innerHTML="";});
+
+
+function setupActions(){
+  const weekSel = $("weekSelect") || $("weekSelectModal");
+  const weekSelModal = $("weekSelectModal");
+  const monthSel = $("monthSelect") || $("monthSelectModal");
+  const monthSelModal = $("monthSelectModal");
+
+  const weekOptions = [];
+  for(let i=0;i<DATA.length;i+=7){
+    const items=DATA.slice(i,i+7);
+    if(!items.length) continue;
+    const shabbos = items.find(x=>String(x.day).includes("שבת"));
+    const labelBase = shabbos ? cleanWeekName(shabbos.day) : `ימים ${items[0].idx}–${items[items.length-1].idx}`;
+    weekOptions.push(`<option value="${items.map(x=>x.idx).join(",")}">${escapeHtml(labelBase)} · ימים ${items[0].idx}–${items[items.length-1].idx}</option>`);
+  }
+
+  if(weekSel) weekSel.innerHTML = weekOptions.join("");
+  if(weekSelModal && weekSelModal !== weekSel) weekSelModal.innerHTML = weekOptions.join("");
+
+  const months={};
+  DATA.forEach(x=>{const key=hebrewMonth(x.hdate) || "ללא חודש";(months[key] ||= []).push(x.idx)});
+  const monthOptions = Object.entries(months).map(([k,ids])=>`<option value="${ids.join(",")}">${escapeHtml(k)}</option>`).join("");
+
+  if(monthSel) monthSel.innerHTML = monthOptions;
+  if(monthSelModal && monthSelModal !== monthSel) monthSelModal.innerHTML = monthOptions;
+}
+
+
+function markRange(type,val){
+  const sel = type==="week" ? ($("weekSelect") || $("weekSelectModal")) : ($("monthSelect") || $("monthSelectModal"));
+  if(!sel || !sel.value){
+    showToast("הרשימה עדיין לא נטענה");
+    return;
+  }
+  const ids=sel.value.split(",").map(Number).filter(Boolean);
+  const done=getDone();
+  ids.forEach(id=> val ? done[id]=true : delete done[id]);
+  setDone(done);
+  refresh();
+  showToast(val ? "הסימון בוצע בהצלחה" : "ביטול הסימון בוצע");
+}
+
+function clearAllDone(){if(confirm("לאפס את כל הסימונים?")){setDone({});refresh();showToast("כל הסימונים אופסו")}}
+function saveName(){
+  const name=$("nameInput").value.trim() || "משתמש";
+  localStorage.setItem(STORAGE_PREFIX+"name", name);
+  refresh(); showToast("השם נשמר");
+}
+function toggleTheme(){
+  document.body.classList.toggle("light");
+  localStorage.setItem(STORAGE_PREFIX+"theme", document.body.classList.contains("light") ? "light" : "dark");
+  showToast("המראה עודכן");
+}
+
+function applyDefaultMobileTheme(){
+  const savedTheme = localStorage.getItem(STORAGE_PREFIX+"theme");
+  const mobile = window.matchMedia && window.matchMedia("(max-width: 680px)").matches;
+  if(savedTheme === "light"){
+    document.body.classList.add("light");
+  }else if(savedTheme === "dark"){
+    document.body.classList.remove("light");
+  }else if(mobile){
+    document.body.classList.add("light");
+  }
+}
+
+function refresh(){
+  try{ bindHomeButtons(); }catch(e){ console.error("bindHomeButtons error:", e); }
+  try{ updateGreeting(); }catch(e){ console.error("updateGreeting error:", e); }
+  try{ updateClock(); }catch(e){ console.error("updateClock error:", e); }
+  try{ renderAdminMessage(); }catch(e){ console.error("renderAdminMessage error:", e); }
+  try{ renderToday(); renderTodayMobilePolished(); }catch(e){ console.error("renderToday error:", e); }
+  try{ updateProgress(); }catch(e){ console.error("updateProgress error:", e); }
+  try{ renderCalendar(); }catch(e){ console.error("renderCalendar error:", e); }
+  try{ if($("nameInput")) $("nameInput").value=getName(); }catch(e){ console.error("name input error:", e); }
+}
+
+window.addEventListener("keydown", e=>{
+  const typing = e.target && /^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName);
+  if(e.key === "Escape"){
+    closeModal();
+    closeBulkModal();
+    closeMessageFormBox();
+    closePrintPicker();
+  }
+  if(!typing && !e.ctrlKey && !e.metaKey && !e.altKey && e.key.toLowerCase()==="h") showPage("homePage");
+})
+window.addEventListener("load",()=>{applyDefaultMobileTheme();showPage("homePage");updateGreeting();updateClock();loadSheetData();});
+
+window.addEventListener("beforeinstallprompt", e=>{
+  e.preventDefault();
+  deferredInstallPrompt = e;
+});
+
+window.addEventListener("appinstalled", ()=>{
+  deferredInstallPrompt = null;
+  showToast("האפליקציה הותקנה");
+});
+
+
+
+
+
+
+
+
+function syncModalSelects(){
+  if((!$("weekSelectModal") || !$("monthSelectModal")) && (!DATA || !DATA.length)) return;
+  if(DATA && DATA.length) setupActions();
+}
+
+function openBulkModal(){
+  syncModalSelects();
+  $("bulkModal").classList.add("open");
+}
+function closeBulkModal(){
+  $("bulkModal").classList.remove("open");
+}
+
+function markRangeFromModal(type, state){
+  const src = type === "week" ? $("weekSelectModal") : $("monthSelectModal");
+  if(!src || !src.value){
+    showToast("הרשימה עדיין לא נטענה");
+    return;
+  }
+  const ids = src.value.split(",").map(Number).filter(Boolean);
+  const done = getDone();
+  ids.forEach(id => state ? done[id]=true : delete done[id]);
+  setDone(done);
+  refresh();
+  showToast(state ? "הסימון בוצע בהצלחה" : "ביטול הסימון בוצע");
+}
+
+function openMessageFormBox(){
+  $("messageFormModal").classList.add("open");
+}
+function closeMessageFormBox(){
+  $("messageFormModal").classList.remove("open");
+}
+
+
+
+function hideExternalNetfreeBoxes(){
+  const selectors = [
+    'iframe[src*="netfree"]',
+    'iframe[src*="NetFree"]',
+    '[id*="netfree" i]',
+    '[class*="netfree" i]',
+    '[id*="נטפרי"]',
+    '[class*="נטפרי"]'
+  ];
+  selectors.forEach(sel=>{
+    try{
+      document.querySelectorAll(sel).forEach(el=>{
+        if(!el.closest(".app") && !el.closest(".site-header")){
+          el.style.setProperty("display","none","important");
+          el.style.setProperty("visibility","hidden","important");
+          el.style.setProperty("height","0","important");
+          el.style.setProperty("overflow","hidden","important");
+        }
+      });
+    }catch(e){}
+  });
+}
+window.addEventListener("load", ()=>{
+  hideExternalNetfreeBoxes();
+  setTimeout(hideExternalNetfreeBoxes, 700);
+  setTimeout(hideExternalNetfreeBoxes, 2000);
+});
+
+
+function bindCriticalHomeButtonsHard(){
+  bindHomeButtons();
+}
+document.addEventListener("DOMContentLoaded", bindCriticalHomeButtonsHard);
+window.addEventListener("load", bindCriticalHomeButtonsHard);
+setTimeout(bindCriticalHomeButtonsHard, 300);
+setTimeout(bindCriticalHomeButtonsHard, 1500);
+
+function setupMapFloatingTooltip(){
+  if(window.__mapFloatingTooltipReady) return;
+  window.__mapFloatingTooltipReady = true;
+  const tip = document.createElement("div");
+  tip.className = "map-float-tip";
+  tip.style.display = "none";
+  document.body.appendChild(tip);
+
+  function isDesktop(){
+    return window.matchMedia && window.matchMedia("(min-width: 681px)").matches;
+  }
+  function moveTip(e){
+    if(tip.style.display === "none") return;
+    const margin = 12;
+    const rect = tip.getBoundingClientRect();
+    let left = e.clientX + 16;
+    let top = e.clientY - rect.height - 14;
+    if(left + rect.width + margin > window.innerWidth) left = window.innerWidth - rect.width - margin;
+    if(left < margin) left = margin;
+    if(top < margin) top = e.clientY + 18;
+    if(top + rect.height + margin > window.innerHeight) top = window.innerHeight - rect.height - margin;
+    tip.style.left = left + "px";
+    tip.style.top = top + "px";
+  }
+
+  document.addEventListener("mouseover", e=>{
+    const dot = e.target.closest && e.target.closest(".year-map .dot");
+    if(!dot || !isDesktop()) return;
+    const text = dot.getAttribute("data-tip");
+    if(!text) return;
+    tip.textContent = text;
+    tip.style.display = "block";
+    moveTip(e);
+  });
+  document.addEventListener("mousemove", e=>{
+    if(e.target.closest && e.target.closest(".year-map .dot")) moveTip(e);
+  });
+  document.addEventListener("mouseout", e=>{
+    if(e.target.closest && e.target.closest(".year-map .dot")) tip.style.display = "none";
+  });
+}
+document.addEventListener("DOMContentLoaded", setupMapFloatingTooltip);
+window.addEventListener("load", setupMapFloatingTooltip);
+
+function setupMobileMapLongPressInfo(){
+  if(window.__mobileMapLongPressInfoReady) return;
+  window.__mobileMapLongPressInfoReady = true;
+  let timer = null;
+  let shown = false;
+  let activeDot = null;
+  let tip = null;
+
+  function isMobile(){
+    return window.matchMedia && window.matchMedia("(max-width: 680px)").matches;
+  }
+  function hideTip(){
+    if(tip) tip.remove();
+    tip = null;
+  }
+  function showTip(dot){
+    const text = dot.getAttribute("data-tip") || "";
+    if(!text || !isMobile()) return;
+    hideTip();
+    const rect = dot.getBoundingClientRect();
+    tip = document.createElement("div");
+    tip.className = "map-mobile-tip";
+    tip.innerHTML = `<b>פרטי היום</b>${escapeHtml(text)}`;
+    document.body.appendChild(tip);
+    const margin = 10;
+    const tipRect = tip.getBoundingClientRect();
+    let left = rect.left + rect.width / 2 - tipRect.width / 2;
+    let top = rect.top - tipRect.height - 10;
+    if(left < margin) left = margin;
+    if(left + tipRect.width + margin > window.innerWidth) left = window.innerWidth - tipRect.width - margin;
+    if(top < margin) top = rect.bottom + 10;
+    if(top + tipRect.height + margin > window.innerHeight) top = window.innerHeight - tipRect.height - margin;
+    tip.style.left = left + "px";
+    tip.style.top = top + "px";
+    shown = true;
+    setTimeout(hideTip, 3600);
+  }
+
+  document.addEventListener("pointerdown", e=>{
+    const dot = e.target.closest && e.target.closest(".year-map .dot:not(.dot-empty)");
+    if(!dot || !isMobile()) return;
+    activeDot = dot;
+    shown = false;
+    clearTimeout(timer);
+    timer = setTimeout(()=>showTip(dot), 620);
+  }, true);
+
+  ["pointerup","pointercancel","pointerleave"].forEach(type=>{
+    document.addEventListener(type, ()=>{
+      clearTimeout(timer);
+      activeDot = null;
+    }, true);
+  });
+
+  document.addEventListener("click", e=>{
+    const dot = e.target.closest && e.target.closest(".year-map .dot:not(.dot-empty)");
+    if(dot && isMobile() && shown){
+      e.preventDefault();
+      e.stopPropagation();
+      shown = false;
+    }
+  }, true);
+}
+document.addEventListener("DOMContentLoaded", setupMobileMapLongPressInfo);
+window.addEventListener("load", setupMobileMapLongPressInfo);
+setTimeout(setupMobileMapLongPressInfo, 0);
+setTimeout(setupMobileMapLongPressInfo, 800);
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load", ()=>{
+    navigator.serviceWorker.register("sw.js").catch(()=>{});
+  });
+}
+
+
+
+/* מובייל: פתרון הדפסה יציב בדף חדש */
+function compactPrintLearning(text){
+  return String(text || "").replace(/\s*\|\s*/g, " · ").replace(/\s+/g, " ").trim();
+}
+
+function cleanPrintDate(text){
+  return String(text || "").replace(/\s+/g, " ").trim();
+}
+
+function printLearningLinesHard(text){
+  const rawParts = String(text || "").split("|").map(s=>compactPrintLearning(s).trim()).filter(Boolean);
+  const lines = rawParts.length ? rawParts.slice(0,3) : [compactPrintLearning(text)];
+  while(lines.length < 3) lines.push("");
+  return lines.map(line=>`<div>${escapeHtml(line)}</div>`).join("");
+}
+
+function printDayLineHard(x){
+  const day = String((x && x.day) || "").trim();
+  if(day && printDayIndex(x) === 6) return `<div class="print-day">${escapeHtml(day)}</div>`;
+  return "";
+}
+
+
+function buildPrintCalendarHtml(rows){
+  const mode = $("printMode")?.value || "range";
+  const headers = ["ראשון","שני","שלישי","רביעי","חמישי","שישי","שבת"];
+  const titleRange = rows.length ? `${escapeHtml(rows[0].hdate)} – ${escapeHtml(rows[rows.length-1].hdate)}` : "";
+  const modeLabel = mode==="day" ? "הדפסה יומית" : mode==="week" ? "הדפסה שבועית" : mode==="month" ? `חודש ${escapeHtml($("printMonthSelect")?.value || "")}` : mode==="tractate" ? `לפי מסכת ${escapeHtml($("printTractateSelect")?.value || "")}` : "טווח תאריכים";
+  const weeks = buildCalendarWeeks(rows);
+
+  const densityClass =
+    mode === "month" && weeks.length <= 5 ? "print-roomy" :
+    weeks.length <= 4 ? "print-roomy" :
+    weeks.length >= 7 ? "print-compact" :
+    "print-balanced";
+
+  function printLearningLines(text){
+    const clean = compactPrintLearning(text);
+    const parts = clean.split(/\s*ֲ·\s*|\s*\|\s*/).map(s=>s.trim()).filter(Boolean);
+    const lines = parts.length ? parts.slice(0,3) : [clean];
+    while(lines.length < 3) lines.push("");
+    return lines.map(line=>`<div>${escapeHtml(line)}</div>`).join("");
+  }
+
+  function printDayLine(x){
+    const day = String(x.day || "").trim();
+    if(day && (day.includes("שבת") || day.includes("׳©׳‘׳×"))) return `<div class="print-day">${escapeHtml(day)}</div>`;
+    return "";
+  }
+
+  function printCell(x){
+    if(!x) return `<td class="print-cal-empty"><div></div></td>`;
+    return `<td class="print-cal-cell">
+      <div class="print-date">${escapeHtml(cleanPrintDate(x.hdate))}</div>
+      ${printDayLineHard(x)}
+      <div class="print-learning">${printLearningLinesHard(x.chapters)}</div>
+    </td>`;
+  }
+
+  return `
+    <div class="print-page calendar-print designed-calendar-print ${densityClass}">
+      <div class="print-headline">
+        <img src="header-logo.png" alt="לוגו" class="print-logo">
+        <h1 class="print-title">לוח שנה למשניות משפחת זלצמן</h1>
+        <p class="print-subtitle">${modeLabel} · ${titleRange} · ${rows.length} ימים</p>
+      </div>
+      <table class="print-calendar-table">
+        <thead><tr>${headers.map(h=>`<th>${h}</th>`).join("")}</tr></thead>
+        <tbody>${weeks.map(w=>`<tr>${w.map(printCell).join("")}</tr>`).join("")}</tbody>
+      </table>
+    </div>`;
+}
+
+
+function openPrintPreviewPage(){
+  if(!DATA || !DATA.length){
+    showToast("הנתונים עדיין לא נטענים");
+    return;
+  }
+  const rows = getPrintRowsByMode();
+  if(!rows.length){
+    showToast("לא נמצאו ימים לתצוגה");
+    return;
+  }
+
+  const printHtml = buildPrintCalendarHtml(rows);
+  const w = window.open("", "_blank");
+  if(!w){
+    showToast("הדפדפן חסם פתיחת חלון חדש");
+    return;
+  }
+
+  w.document.open();
+  w.document.write(`<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>תצוגת הדפסה</title>
+<style>
+body{margin:0;background:#fff;color:#201608;font-family:Arial,system-ui,sans-serif;direction:rtl}
+.preview-actions{position:sticky;top:0;z-index:10;display:flex;gap:8px;justify-content:center;padding:10px;background:#201608;color:#fff;box-shadow:0 8px 20px rgba(0,0,0,.18)}
+.preview-actions button{border:0;border-radius:999px;padding:10px 16px;font-weight:800;background:#d7b264;color:#1b1207}
+.preview-wrap{max-width:920px;margin:0 auto;padding:12px}
+.print-page{background:#fff;border:1px solid #d8bd86;border-radius:14px;padding:14px;box-shadow:0 10px 28px rgba(0,0,0,.08)}
+.print-headline{text-align:center;border-bottom:1px solid #d8bd86;margin-bottom:10px;padding-bottom:8px}
+.print-logo{display:block;width:62px;height:auto;margin:0 auto 6px;object-fit:contain}
+.print-title{font-size:22px;margin:0 0 5px;color:#3d270b}
+.print-subtitle{font-size:13px;margin:0;color:#6e5c3b}
+.print-calendar-table{width:100%;table-layout:fixed;border-collapse:separate;border-spacing:7px;direction:rtl}
+.print-calendar-table th{background:#5a3811;color:#fff8e8;border-radius:6px;padding:7px 4px;font-size:12px}
+.print-calendar-table td{vertical-align:top}
+.print-cal-cell,.print-cal-empty{height:68px;min-height:68px;border:1.8px solid #4b310f;border-radius:10px;background:linear-gradient(180deg,#fffdf8,#fff7e7);padding:8px;overflow:hidden;box-sizing:border-box;box-shadow:inset 0 0 0 1px rgba(255,255,255,.72)}
+.print-cal-empty{background:#fffaf2;border-color:#eee1c8}
+.print-date{display:inline-block;max-width:100%;font-size:12px;font-weight:900;color:#3e280c;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:5px;padding:2px 6px;border:1.4px solid #6a4316;border-radius:7px;background:#fff}
+.print-day{font-size:10.5px;line-height:1.2;color:#6a4514;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin:-2px 0 3px}
+.print-learning{display:grid;grid-template-rows:repeat(3,1fr);gap:1px;font-size:12px;line-height:1.22;color:#201608;max-height:43px;overflow:hidden}
+.print-learning div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media(max-width:700px){.preview-wrap{padding:8px}.print-page{padding:8px;border-radius:10px}.print-title{font-size:17px}.print-subtitle{font-size:11px}.print-calendar-table{border-spacing:3px}.print-calendar-table th{font-size:9px;padding:5px 2px}.print-cal-cell,.print-cal-empty{height:44px;min-height:44px;padding:4px;border-radius:6px}.print-date{font-size:8.5px;margin-bottom:2px}.print-learning{font-size:8.5px;line-height:1.18;max-height:27px}}
+@media print{@page{size:A4 portrait;margin:8mm}body{background:#fff}.preview-actions{display:none}.preview-wrap{max-width:none;padding:0;background:#fff}.print-page{box-shadow:none;border:0;border-radius:0;padding:0;background:#fff}.print-title{font-size:14pt}.print-subtitle{font-size:8pt}.print-calendar-table{border-spacing:1.15mm}.print-calendar-table th{font-size:7.4pt;padding:1.35mm .6mm;border-radius:3.5px}.print-cal-cell,.print-cal-empty{height:18mm;min-height:18mm;max-height:18mm;padding:1.35mm;border-radius:5px;border:1.5px solid #5a3510;background:#fff}.print-date{font-size:6.8pt;border:1.2px solid #5a3510;background:#fff}.print-learning{font-size:6.7pt;line-height:1.22;max-height:12.8mm}}
+
+/* ===== Mobile calendar width fix ===== */
+@media(max-width:680px){
+  #calendar.mobile-real-mini{
+    display:block!important;
+    grid-template-columns:none!important;
+    width:100%!important;
+    max-width:352px!important;
+    margin:0 auto!important;
+    overflow:hidden!important;
+  }
+  #calendar.mobile-real-mini .mobile-real-calendar{
+    display:flex!important;
+    flex-direction:column!important;
+    width:100%!important;
+    max-width:352px!important;
+    gap:10px!important;
+    margin:0 auto!important;
+  }
+  #calendar.mobile-real-mini .mobile-real-month{
+    display:block!important;
+    width:100%!important;
+    max-width:100%!important;
+    min-width:0!important;
+  }
+  #calendar.mobile-real-mini .mobile-real-month-title{
+    width:100%!important;
+    min-width:0!important;
+    min-height:38px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    white-space:normal!important;
+    text-align:right!important;
+  }
+  #calendar.mobile-real-mini .mobile-real-week-head,
+  #calendar.mobile-real-mini .mobile-real-grid{
+    width:100%!important;
+    grid-template-columns:repeat(7,minmax(0,1fr))!important;
+  }
+  #calendar.mobile-real-mini .mobile-month-open .mobile-real-week-head,
+  #calendar.mobile-real-mini .mobile-month-open .mobile-real-grid{
+    display:grid!important;
+  }
+  #calendar.mobile-real-mini .mobile-real-month:not(.mobile-month-open) .mobile-real-week-head,
+  #calendar.mobile-real-mini .mobile-real-month:not(.mobile-month-open) .mobile-real-grid{
+    display:none!important;
+  }
+  #calendar.mobile-real-mini .mobile-real-day,
+  #calendar.mobile-real-mini .mobile-real-empty{
+    width:100%!important;
+    min-width:0!important;
+  }
+}</style>
+</head>
+<body>
+  <div class="preview-actions">
+    <button onclick="window.print()">הדפס / שמור PDF</button>
+    <button onclick="window.close()">סגור</button>
+  </div>
+  <main class="preview-wrap">${printHtml}</main>
+</body>
+</html>`);
+  w.document.close();
+}
+
+function printSelectedRange(){
+  if(!DATA || !DATA.length){
+    showToast("הנתונים עדיין לא נטענו");
+    return;
+  }
+  const rows = getPrintRowsByMode();
+  if(!rows.length){
+    showToast("לא נמצאו ימים להדפסה");
+    return;
+  }
+  const area = $("printArea");
+  area.innerHTML = buildPrintCalendarHtml(rows);
+  closePrintPicker();
+  document.body.classList.add("print-mode");
+  setTimeout(()=>window.print(),180);
+}
+
+</script>
+  <script src="mobile-app-v20.js?v=1" defer></script>
+</body>
+</html>
