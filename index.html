@@ -1203,7 +1203,7 @@ function updateProgress(){
       const tip = `${dayText(x)}\n${x.chapters}`;
       const action = isDone ? "בטל סימון" : "סמן כנלמד";
       const shortDate = String(x.hdate || "").trim().split(/\s+/)[0] || x.idx;
-      return `<button type="button" class="${cls}" data-tip="${escapeHtml(tip)}" data-date-short="${escapeHtml(shortDate)}" onclick="toggleMapDone(${x.idx})" title="${action}" aria-label="${action}: ${escapeHtml(dayText(x))}"></button>`;
+      return `<button type="button" class="${cls}" data-index="${x.idx}" data-tip="${escapeHtml(tip)}" data-date-short="${escapeHtml(shortDate)}" onclick="toggleMapDone(${x.idx})" title="${action}" aria-label="${action}: ${escapeHtml(dayText(x))}"></button>`;
     }).join("");
   }
 }
@@ -2087,13 +2087,11 @@ function setupMapFloatingTooltip(){
 document.addEventListener("DOMContentLoaded", setupMapFloatingTooltip);
 window.addEventListener("load", setupMapFloatingTooltip);
 
-function setupMobileMapLongPressInfo(){
-  if(window.__mobileMapLongPressInfoReady) return;
-  window.__mobileMapLongPressInfoReady = true;
-  let timer = null;
-  let shown = false;
-  let activeDot = null;
+function setupMobileMapTapInfo(){
+  if(window.__mobileMapTapInfoReady) return;
+  window.__mobileMapTapInfoReady = true;
   let tip = null;
+  let activeIndex = null;
 
   function isMobile(){
     return window.matchMedia && window.matchMedia("(max-width: 680px)").matches;
@@ -2101,16 +2099,27 @@ function setupMobileMapLongPressInfo(){
   function hideTip(){
     if(tip) tip.remove();
     tip = null;
+    activeIndex = null;
   }
   function showTip(dot){
     const text = dot.getAttribute("data-tip") || "";
     if(!text || !isMobile()) return;
     hideTip();
-    const rect = dot.getBoundingClientRect();
+
+    const parts = text.split("\n");
+    const heading = parts.shift() || "פרטי היום";
+    const learning = parts.join(" · ");
+    const idx = Number(dot.dataset.index);
+    const isDone = dot.classList.contains("done");
+
     tip = document.createElement("div");
     tip.className = "map-mobile-tip";
-    tip.innerHTML = `<b>פרטי היום</b>${escapeHtml(text)}`;
+    tip.setAttribute("role","dialog");
+    tip.setAttribute("aria-label","פרטי הלימוד ליום");
+    tip.innerHTML = `<strong>${escapeHtml(heading)}</strong><span>${escapeHtml(learning)}</span><button type="button" class="map-tip-action">${isDone ? "בטל סימון" : "סמן כנלמד"}</button>`;
     document.body.appendChild(tip);
+
+    const rect = dot.getBoundingClientRect();
     const margin = 10;
     const tipRect = tip.getBoundingClientRect();
     let left = rect.left + rect.width / 2 - tipRect.width / 2;
@@ -2121,39 +2130,43 @@ function setupMobileMapLongPressInfo(){
     if(top + tipRect.height + margin > window.innerHeight) top = window.innerHeight - tipRect.height - margin;
     tip.style.left = left + "px";
     tip.style.top = top + "px";
-    shown = true;
-    setTimeout(hideTip, 3600);
+    activeIndex = idx;
+
+    tip.querySelector(".map-tip-action").addEventListener("click", event=>{
+      event.preventDefault();
+      event.stopPropagation();
+      hideTip();
+      toggleMapDone(idx);
+    });
   }
 
-  document.addEventListener("pointerdown", e=>{
-    const dot = e.target.closest && e.target.closest(".year-map .dot:not(.dot-empty)");
-    if(!dot || !isMobile()) return;
-    activeDot = dot;
-    shown = false;
-    clearTimeout(timer);
-    timer = setTimeout(()=>showTip(dot), 620);
-  }, true);
-
-  ["pointerup","pointercancel","pointerleave"].forEach(type=>{
-    document.addEventListener(type, ()=>{
-      clearTimeout(timer);
-      activeDot = null;
-    }, true);
-  });
-
-  document.addEventListener("click", e=>{
-    const dot = e.target.closest && e.target.closest(".year-map .dot:not(.dot-empty)");
-    if(dot && isMobile() && shown){
-      e.preventDefault();
-      e.stopPropagation();
-      shown = false;
+  document.addEventListener("click", event=>{
+    if(!isMobile()){
+      hideTip();
+      return;
     }
+    const dot = event.target.closest && event.target.closest(".year-map .dot:not(.dot-empty)");
+    if(dot){
+      event.preventDefault();
+      event.stopPropagation();
+      const idx = Number(dot.dataset.index);
+      if(tip && activeIndex === idx){
+        hideTip();
+      }else{
+        showTip(dot);
+      }
+      return;
+    }
+    if(tip && !event.target.closest(".map-mobile-tip")) hideTip();
   }, true);
+
+  window.addEventListener("scroll", hideTip, {passive:true});
+  window.addEventListener("resize", hideTip);
 }
-document.addEventListener("DOMContentLoaded", setupMobileMapLongPressInfo);
-window.addEventListener("load", setupMobileMapLongPressInfo);
-setTimeout(setupMobileMapLongPressInfo, 0);
-setTimeout(setupMobileMapLongPressInfo, 800);
+document.addEventListener("DOMContentLoaded", setupMobileMapTapInfo);
+window.addEventListener("load", setupMobileMapTapInfo);
+setTimeout(setupMobileMapTapInfo, 0);
+setTimeout(setupMobileMapTapInfo, 800);
 
 if("serviceWorker" in navigator){
   window.addEventListener("load", ()=>{
