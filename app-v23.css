@@ -359,3 +359,136 @@ body{background:linear-gradient(90deg,#f3f0e9 0,#faf8f3 48%,#f3f0e9 100%)!import
   .year-map .dot{min-height:39px!important;border-radius:4px!important}
   .year-map .dot:not(.dot-empty):before{font-size:10.5px!important}
 }
+
+
+/* ===== v23 finish: typography, reader and secondary flows ===== */
+@font-face{
+  font-family:"Lia Shaharit";
+  src:url("LiaShaharit-Regular.ttf") format("truetype");
+  font-style:normal;
+  font-weight:400;
+  font-display:swap;
+}
+.intro h1,
+.home-main h2,
+.home-side h3,
+.calendar-topline h3,
+.calendar-month-title,
+#actionsPage h3,
+#settingsPage h3,
+.settings-box h4,
+.reader-section>h3,
+.reader-chapter>h4{
+  font-family:"Lia Shaharit","Noto Serif Hebrew",serif!important;
+  letter-spacing:0!important;
+}
+.home-main h2{line-height:1.05!important}
+.message-alert{
+  justify-content:space-between!important;
+  padding:14px 0!important;
+  border-width:0 0 1px!important;
+  border-radius:0!important;
+  background:transparent!important;
+}
+.message-alert-title{color:var(--ink)!important;font-weight:900!important}
+.message-alert>span:last-child{color:var(--copper)!important;font-weight:800!important}
+.loading-note{min-height:25px!important;margin-top:12px!important}
+.error-note{border-radius:4px!important}
+
+/* Reader is treated as a calm book page. */
+.reader-modal .modal-box{width:min(940px,100%)!important}
+.reader-top{
+  display:flex!important;
+  align-items:flex-start!important;
+  justify-content:space-between!important;
+  gap:20px!important;
+  border-width:0 0 1px!important;
+  border-radius:0!important;
+  background:transparent!important;
+}
+.reader-top h3{margin:5px 0 0!important;color:var(--ink)!important;font-size:24px!important}
+.reader-date{margin:0!important;color:var(--copper)!important;font-size:13px!important;font-weight:800!important}
+.reader-section{margin:0 0 36px!important}
+.reader-section>h3{
+  margin:0 0 22px!important;
+  padding:0 0 11px!important;
+  border-bottom:2px solid var(--ink)!important;
+  color:var(--ink)!important;
+  font-size:34px!important;
+  font-weight:400!important;
+}
+.reader-chapter{margin:0 0 28px!important}
+.reader-chapter>h4{
+  margin:0 0 10px!important;
+  color:var(--copper)!important;
+  font-size:25px!important;
+  font-weight:400!important;
+}
+.reader-mishna{
+  margin:0!important;
+  padding:18px 0!important;
+  border-width:0 0 1px!important;
+  border-radius:0!important;
+  background:transparent!important;
+}
+.reader-mishna h5{margin:0 0 8px!important;color:var(--copper)!important;font-size:15px!important}
+.reader-mishna p{
+  margin:0!important;
+  color:#243b43!important;
+  font-family:"Noto Serif Hebrew",Georgia,serif!important;
+  font-size:20px!important;
+  line-height:2!important;
+}
+.reader-wrap[data-size="1"] .reader-mishna p{font-size:23px!important}
+.reader-wrap[data-size="2"] .reader-mishna p{font-size:26px!important}
+.reader-loading,.reader-empty{
+  min-height:180px!important;
+  display:grid!important;
+  place-items:center!important;
+  align-content:center!important;
+  gap:12px!important;
+  text-align:center!important;
+}
+.reader-spinner{
+  width:34px!important;
+  height:34px!important;
+  border:3px solid #ddd6cc!important;
+  border-top-color:var(--copper)!important;
+  border-radius:50%!important;
+  animation:readerSpin .8s linear infinite!important;
+}
+@keyframes readerSpin{to{transform:rotate(360deg)}}
+
+/* Secondary dialogs and embedded form. */
+.message-form-modal-box{width:min(760px,100%)!important}
+.form-embed-wrap{padding:0 20px!important;background:#fff!important}
+.modal-form-embed{min-height:560px!important}
+.mobile-pwa-install-card{padding:4px 0!important}
+.mobile-pwa-install-card>b{display:block!important;margin-bottom:8px!important;color:var(--ink)!important;font-size:21px!important}
+.print-picker-box>h3{margin:0!important;padding:20px 22px!important;border-bottom:1px solid var(--hair)!important;color:var(--ink)!important}
+.print-picker-box>.form-grid{padding:22px!important}
+.backup-box{min-height:130px!important;resize:vertical!important}
+
+/* Clear, restrained states throughout the application. */
+.btn:disabled{opacity:.5!important;cursor:not-allowed!important;transform:none!important}
+.search::placeholder,input::placeholder,textarea::placeholder{color:#8d9698!important}
+button,input,select,textarea{-webkit-tap-highlight-color:transparent}
+.empty{padding:38px 10px!important;color:var(--muted)!important;text-align:center!important}
+
+@media(max-width:680px){
+  .reader-modal{padding:0!important;background:#fff!important}
+  .reader-modal .modal-box{width:100%!important;height:100dvh!important;max-height:none!important;border:0!important;border-radius:0!important}
+  .reader-modal .modal-head{padding:14px 16px!important}
+  .reader-modal .modal-box>#modalBody{padding:16px!important}
+  .reader-top{position:static!important;padding:0 0 15px!important}
+  .reader-top h3{font-size:20px!important}
+  .reader-section>h3{font-size:29px!important}
+  .reader-chapter>h4{font-size:23px!important}
+  .reader-mishna{padding:16px 0!important}
+  .reader-mishna p{font-size:19px!important;line-height:1.9!important}
+  .reader-wrap[data-size="1"] .reader-mishna p{font-size:22px!important}
+  .reader-wrap[data-size="2"] .reader-mishna p{font-size:25px!important}
+  .form-embed-wrap{padding:0!important}
+  .google-form-frame{min-height:calc(100dvh - 155px)!important}
+  .message-alert{margin-top:10px!important}
+}
