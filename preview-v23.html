@@ -2054,35 +2054,51 @@ function setupMapFloatingTooltip(){
   function isDesktop(){
     return window.matchMedia && window.matchMedia("(min-width: 681px)").matches;
   }
-  function moveTip(e){
-    if(tip.style.display === "none") return;
-    const margin = 12;
-    const rect = tip.getBoundingClientRect();
-    let left = e.clientX + 16;
-    let top = e.clientY - rect.height - 14;
-    if(left + rect.width + margin > window.innerWidth) left = window.innerWidth - rect.width - margin;
-    if(left < margin) left = margin;
-    if(top < margin) top = e.clientY + 18;
-    if(top + rect.height + margin > window.innerHeight) top = window.innerHeight - rect.height - margin;
-    tip.style.left = left + "px";
-    tip.style.top = top + "px";
+  function hideTip(){
+    tip.style.display = "none";
+    tip.removeAttribute("data-index");
   }
-
-  document.addEventListener("mouseover", e=>{
-    const dot = e.target.closest && e.target.closest(".year-map .dot");
-    if(!dot || !isDesktop()) return;
+  function placeTip(dot){
     const text = dot.getAttribute("data-tip");
-    if(!text) return;
+    if(!text || !isDesktop()) return;
     tip.textContent = text;
     tip.style.display = "block";
-    moveTip(e);
+    tip.style.visibility = "hidden";
+
+    const viewport = window.visualViewport;
+    const viewLeft = viewport ? viewport.offsetLeft : 0;
+    const viewTop = viewport ? viewport.offsetTop : 0;
+    const viewWidth = viewport ? viewport.width : window.innerWidth;
+    const viewHeight = viewport ? viewport.height : window.innerHeight;
+    const rect = dot.getBoundingClientRect();
+    const tipRect = tip.getBoundingClientRect();
+    const margin = 12;
+    let left = rect.left + rect.width / 2 - tipRect.width / 2;
+    let top = rect.top - tipRect.height - 10;
+
+    left = Math.max(viewLeft + margin, Math.min(left, viewLeft + viewWidth - tipRect.width - margin));
+    if(top < viewTop + margin) top = rect.bottom + 10;
+    top = Math.max(viewTop + margin, Math.min(top, viewTop + viewHeight - tipRect.height - margin));
+
+    tip.style.left = Math.round(left) + "px";
+    tip.style.top = Math.round(top) + "px";
+    tip.style.visibility = "visible";
+    tip.dataset.index = dot.dataset.index || "";
+  }
+
+  document.addEventListener("mouseover", event=>{
+    const dot = event.target.closest && event.target.closest(".year-map .dot:not(.dot-empty)");
+    if(!dot || !isDesktop()) return;
+    if(tip.dataset.index !== (dot.dataset.index || "")) placeTip(dot);
   });
-  document.addEventListener("mousemove", e=>{
-    if(e.target.closest && e.target.closest(".year-map .dot")) moveTip(e);
+  document.addEventListener("mouseout", event=>{
+    const dot = event.target.closest && event.target.closest(".year-map .dot:not(.dot-empty)");
+    if(!dot || !isDesktop()) return;
+    if(event.relatedTarget && dot.contains(event.relatedTarget)) return;
+    hideTip();
   });
-  document.addEventListener("mouseout", e=>{
-    if(e.target.closest && e.target.closest(".year-map .dot")) tip.style.display = "none";
-  });
+  window.addEventListener("scroll", hideTip, {passive:true});
+  window.addEventListener("resize", hideTip);
 }
 document.addEventListener("DOMContentLoaded", setupMapFloatingTooltip);
 window.addEventListener("load", setupMapFloatingTooltip);
@@ -2121,15 +2137,19 @@ function setupMobileMapTapInfo(){
 
     const rect = dot.getBoundingClientRect();
     const margin = 10;
+    const viewport = window.visualViewport;
+    const viewLeft = viewport ? viewport.offsetLeft : 0;
+    const viewTop = viewport ? viewport.offsetTop : 0;
+    const viewWidth = viewport ? viewport.width : window.innerWidth;
+    const viewHeight = viewport ? viewport.height : window.innerHeight;
     const tipRect = tip.getBoundingClientRect();
     let left = rect.left + rect.width / 2 - tipRect.width / 2;
     let top = rect.top - tipRect.height - 10;
-    if(left < margin) left = margin;
-    if(left + tipRect.width + margin > window.innerWidth) left = window.innerWidth - tipRect.width - margin;
-    if(top < margin) top = rect.bottom + 10;
-    if(top + tipRect.height + margin > window.innerHeight) top = window.innerHeight - tipRect.height - margin;
-    tip.style.left = left + "px";
-    tip.style.top = top + "px";
+    left = Math.max(viewLeft + margin, Math.min(left, viewLeft + viewWidth - tipRect.width - margin));
+    if(top < viewTop + margin) top = rect.bottom + 10;
+    top = Math.max(viewTop + margin, Math.min(top, viewTop + viewHeight - tipRect.height - margin));
+    tip.style.left = Math.round(left) + "px";
+    tip.style.top = Math.round(top) + "px";
     activeIndex = idx;
 
     tip.querySelector(".map-tip-action").addEventListener("click", event=>{
