@@ -492,3 +492,24 @@ button,input,select,textarea{-webkit-tap-highlight-color:transparent}
   .google-form-frame{min-height:calc(100dvh - 155px)!important}
   .message-alert{margin-top:10px!important}
 }
+
+
+/* ===== v23 map sizing and anchored tooltip correction ===== */
+.year-map{
+  width:min(100%,440px)!important;
+  margin-right:0!important;
+  margin-left:auto!important;
+}
+.map-float-tip,.map-mobile-tip{
+  max-height:calc(100dvh - 20px)!important;
+  overflow:auto!important;
+  overscroll-behavior:contain!important;
+}
+.map-float-tip{
+  transform:none!important;
+  transition:none!important;
+}
+@media(max-width:680px){
+  .year-map{width:100%!important;max-width:440px!important}
+  .map-mobile-tip{width:min(280px,calc(100vw - 20px))!important}
+}
